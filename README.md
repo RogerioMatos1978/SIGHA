@@ -79,11 +79,26 @@ python manage.py test apps.usuarios apps.dashboard
 ## Se você já tinha o projeto rodando (Docker)
 
 Como não houve nenhum modelo novo neste módulo, não é preciso rodar migração.
-Basta reconstruir a imagem e reiniciar:
+Basta reconstruir a imagem e reiniciar (é **obrigatório** o `--build`, pois
+entrou uma dependência nova — WhiteNoise, ver correção abaixo):
 
 ```
+docker compose down
 docker compose up --build
 ```
+
+### Correção: layout quebrado em produção
+
+Se o menu lateral aparecia sobreposto ao conteúdo ou o tema claro/escuro
+não funcionava ao rodar via Docker, a causa era: o Gunicorn (usado em
+produção) não serve arquivos estáticos por padrão, então o navegador
+carregava o Bootstrap (que vem de um CDN externo) mas não conseguia
+carregar `theme.css`/`theme.js` — daí o layout bugado. Corrigido com o
+[WhiteNoise](https://whitenoise.readthedocs.io/), que faz o próprio
+Django/Gunicorn servir esses arquivos, sem precisar de Nginx. Também
+foram corrigidas as regras de CSS do menu lateral (posição fixa
+explícita) e removido um carregamento duplicado do JavaScript do
+Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 

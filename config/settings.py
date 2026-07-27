@@ -56,6 +56,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise: serve os arquivos estáticos (CSS/JS do próprio SIGHA)
+    # diretamente pelo Gunicorn. Sem isso, em produção (docker-compose,
+    # sem Nginx) o Bootstrap carrega do CDN mas o nosso theme.css/theme.js
+    # retornam 404 e o layout do menu lateral/tema quebra.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -129,6 +134,24 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        # A versão com hash no nome do arquivo (theme.abcd123.css) exige que
+        # "collectstatic" já tenha rodado (gera um manifesto). Em desenvolvimento
+        # local (DEBUG=True, sem collectstatic) isso quebraria o runserver/testes,
+        # então só usamos o hash em produção — exatamente o que o
+        # docker-compose.yml já faz antes de subir o Gunicorn.
+        'BACKEND': (
+            'whitenoise.storage.CompressedManifestStaticFilesStorage'
+            if not DEBUG else
+            'django.contrib.staticfiles.storage.StaticFilesStorage'
+        ),
+    },
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
