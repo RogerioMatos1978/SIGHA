@@ -1,0 +1,55 @@
+/*
+ * Tema claro/escuro do SIGHA.
+ * Usamos o atributo data-bs-theme do Bootstrap 5.3+ (nativo, sem gambiarra).
+ */
+:root {
+    --sigha-sidebar-width: 250px;
+}
+
+body {
+    min-height: 100vh;
+}
+
+.sigha-sidebar {
+    width: var(--sigha-sidebar-width);
+    min-height: 100vh;
+}
+
+.sigha-sidebar .nav-link {
+    color: var(--bs-body-color);
+    border-radius: .5rem;
+    margin-bottom: .15rem;
+}
+
+.sigha-sidebar .nav-link.active {
+    background-color: var(--bs-primary);
+    color: #fff;
+}
+
+.sigha-sidebar .nav-link:hover:not(.active) {
+    background-color: var(--bs-secondary-bg);
+}
+
+.sigha-main {
+    margin-left: var(--sigha-sidebar-width);
+}
+
+@media (max-width: 768px) {
+    .sigha-main {
+        margin-left: 0;
+    }
+    .sigha-sidebar {
+        position: fixed;
+        z-index: 1040;
+        left: -100%;
+        transition: left .2s ease-in-out;
+    }
+    .sigha-sidebar.show {
+        left: 0;
+    }
+}
+
+.sigha-login-card {
+    max-width: 420px;
+    width: 100%;
+}

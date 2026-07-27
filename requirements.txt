@@ -1,0 +1,14 @@
+Django>=5.0,<5.2
+djangorestframework>=3.15
+psycopg2-binary>=2.9
+python-decouple>=3.8
+django-ratelimit>=4.1
+redis>=5.0
+gunicorn>=22.0
+
+# Serão adicionados nos próximos módulos:
+# openpyxl        (exportação Excel)
+# reportlab       (exportação PDF)
+# python-docx     (exportação Word)
+# Pillow          (exportação PNG/JPEG)
+# ortools         (motor de geração automática de grade)

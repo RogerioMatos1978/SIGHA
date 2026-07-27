@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block titulo %}Login{% endblock %}
+{% block conteudo_publico %}
+<div class="d-flex align-items-center justify-content-center vh-100 bg-body-tertiary">
+    <div class="card sigha-login-card shadow-sm">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-calendar2-week fs-1 text-primary"></i>
+                <h1 class="h4 mt-2">SIGHA</h1>
+                <p class="text-muted small mb-0">Sistema Inteligente de Gestão de Horários Acadêmicos</p>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Usuário</label>
+                    {{ form.username }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Senha</label>
+                    {{ form.password }}
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}Dashboard{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Bem-vindo(a), {{ user.get_full_name|default:user.username }}</h1>
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Módulo 1 (Usuários) e Módulo 2 (Login) estão prontos. O Dashboard completo
+    com indicadores (professores, disciplinas, turmas, ambientes, conflitos)
+    será implementado no próximo módulo, seguindo o fluxo de desenvolvimento definido.
+</div>
+{% endblock %}
