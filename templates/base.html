@@ -40,6 +40,11 @@
                     <i class="bi bi-people-fill me-2"></i>Turmas
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'ambientes:lista' %}" class="nav-link {% if 'ambientes' in request.resolver_match.namespaces %}active{% endif %}">
+                    <i class="bi bi-door-open-fill me-2"></i>Ambientes
+                </a>
+            </li>
             {% endif %}
             {% if user.pode_gerenciar_usuarios %}
             <li class="nav-item">

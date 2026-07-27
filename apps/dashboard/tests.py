@@ -43,10 +43,17 @@ class ServicesTests(TestCase):
         por_chave = {c['chave']: c['valor'] for c in cartoes}
         self.assertEqual(por_chave['turmas'], 1)
 
+    def test_cartao_ambientes_mostra_contagem_real(self):
+        """Desde o Módulo 7, o app ambientes existe: o cartão deixa de ser None."""
+        from apps.ambientes.models import Ambiente, TipoAmbiente
+        Ambiente.objects.create(nome='Biblioteca', tipo=TipoAmbiente.BIBLIOTECA, capacidade=1)
+        cartoes = services.obter_cartoes_resumo()
+        por_chave = {c['chave']: c['valor'] for c in cartoes}
+        self.assertEqual(por_chave['ambientes'], 1)
+
     def test_cartoes_modulos_ainda_nao_implementados_ficam_indisponiveis(self):
         cartoes = services.obter_cartoes_resumo()
         por_chave = {c['chave']: c['valor'] for c in cartoes}
-        self.assertIsNone(por_chave['ambientes'])
         self.assertIsNone(por_chave['conflitos'])
 
 

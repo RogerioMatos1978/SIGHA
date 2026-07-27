@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if object %}Editar ambiente{% else %}Novo ambiente{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if object %}Editar ambiente{% else %}Novo ambiente{% endif %}</h1>
+
+<form method="post" novalidate class="row g-3" style="max-width: 600px;">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="col-md-8">
+        <label class="form-label">Nome</label>
+        {{ form.nome }}
+        {% for erro in form.nome.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Tipo</label>
+        {{ form.tipo }}
+        {% for erro in form.tipo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Capacidade de uso simultâneo</label>
+        {{ form.capacidade }}
+        {% for erro in form.capacidade.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+        <div class="form-text">Quantas turmas podem usar ao mesmo tempo (normalmente 1).</div>
+    </div>
+    <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check">
+            {{ form.ativo }}
+            <label class="form-check-label" for="{{ form.ativo.id_for_label }}">Ambiente ativo</label>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'ambientes:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
