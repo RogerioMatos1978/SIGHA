@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'apps.usuarios',
     'apps.dashboard',
     'apps.professores',
+    'apps.disciplinas',
 ]
 
 MIDDLEWARE = [

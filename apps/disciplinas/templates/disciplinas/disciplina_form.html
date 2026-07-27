@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if object %}Editar disciplina{% else %}Nova disciplina{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if object %}Editar disciplina{% else %}Nova disciplina{% endif %}</h1>
+
+<form method="post" novalidate class="row g-3" style="max-width: 600px;">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="col-md-8">
+        <label class="form-label">Nome</label>
+        {{ form.nome }}
+        {% for erro in form.nome.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Sigla</label>
+        {{ form.sigla }}
+        {% for erro in form.sigla.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Aulas por semana</label>
+        {{ form.quantidade_aulas_semana }}
+        {% for erro in form.quantidade_aulas_semana.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-8 d-flex align-items-end">
+        <div class="form-check">
+            {{ form.ativo }}
+            <label class="form-check-label" for="{{ form.ativo.id_for_label }}">Disciplina ativa</label>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'disciplinas:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
