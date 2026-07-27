@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if object %}Editar professor{% else %}Novo professor{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if object %}Editar professor{% else %}Novo professor{% endif %}</h1>
+
+<form method="post" novalidate class="row g-3" style="max-width: 700px;">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="col-md-8">
+        <label class="form-label">Nome completo</label>
+        {{ form.nome }}
+        {% for erro in form.nome.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Matrícula</label>
+        {{ form.matricula }}
+        {% for erro in form.matricula.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">E-mail</label>
+        {{ form.email }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Telefone</label>
+        {{ form.telefone }}
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Carga horária semanal</label>
+        {{ form.carga_horaria }}
+        {% for erro in form.carga_horaria.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+
+    <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check">
+            {{ form.ativo }}
+            <label class="form-check-label" for="{{ form.ativo.id_for_label }}">Professor ativo</label>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'professores:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

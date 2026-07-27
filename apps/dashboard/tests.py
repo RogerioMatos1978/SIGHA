@@ -19,10 +19,20 @@ class ServicesTests(TestCase):
         self.assertEqual(dados['ativos'], 1)
         self.assertEqual(dados['inativos'], 1)
 
-    def test_cartoes_modulos_futuros_ficam_indisponiveis(self):
+    def test_cartao_professores_mostra_contagem_real(self):
+        """Desde o Módulo 4, o app professores existe: o cartão deixa de ser None."""
+        from apps.professores.models import Professor
+        Professor.objects.create(nome='Ana', matricula='P1', carga_horaria=10)
         cartoes = services.obter_cartoes_resumo()
         por_chave = {c['chave']: c['valor'] for c in cartoes}
-        self.assertIsNone(por_chave['professores'])
+        self.assertEqual(por_chave['professores'], 1)
+
+    def test_cartoes_modulos_ainda_nao_implementados_ficam_indisponiveis(self):
+        cartoes = services.obter_cartoes_resumo()
+        por_chave = {c['chave']: c['valor'] for c in cartoes}
+        self.assertIsNone(por_chave['disciplinas'])
+        self.assertIsNone(por_chave['turmas'])
+        self.assertIsNone(por_chave['ambientes'])
         self.assertIsNone(por_chave['conflitos'])
 
 

@@ -53,6 +53,16 @@ class UsuarioCrudPermissoesTests(TestCase):
         resposta = self.client.get(reverse('usuarios:lista'))
         self.assertEqual(resposta.status_code, 403)
 
+    def test_anonimo_e_redirecionado_para_login_e_nao_403(self):
+        """
+        Visitante sem login deve cair na tela de login (302), não num
+        403 de "acesso negado" — esse é um erro fácil de introduzir ao
+        combinar LoginRequiredMixin com um mixin de papel.
+        """
+        resposta = self.client.get(reverse('usuarios:lista'))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertIn(reverse('usuarios:login'), resposta.url)
+
     def test_admin_acessa_lista_de_usuarios(self):
         self.client.login(username='admin2', password=self.senha)
         resposta = self.client.get(reverse('usuarios:lista'))

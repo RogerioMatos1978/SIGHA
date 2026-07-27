@@ -65,6 +65,17 @@ class Usuario(AbstractUser):
     def is_coordenador(self):
         return self.papel == Papel.COORDENADOR
 
+    def is_secretaria(self):
+        return self.papel == Papel.SECRETARIA
+
     def pode_gerenciar_usuarios(self):
         """Somente Administrador e Coordenador cadastram/editam usuários."""
         return self.is_administrador() or self.is_coordenador()
+
+    def pode_gerenciar_academico(self):
+        """
+        Administrador, Coordenador e Secretaria cadastram/editam os dados
+        acadêmicos (professores, disciplinas, turmas, ambientes...).
+        Reutilizado por todos os módulos de cadastro que vêm a seguir.
+        """
+        return self.is_administrador() or self.is_coordenador() or self.is_secretaria()

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     # Apps do SIGHA (adicionados conforme cada módulo é concluído)
     'apps.usuarios',
     'apps.dashboard',
+    'apps.professores',
 ]
 
 MIDDLEWARE = [

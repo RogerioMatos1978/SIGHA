@@ -1,8 +1,8 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulo 1 (Usuários), Módulo 2 (Login) e Módulo 3 (Dashboard)
-concluídos e testados.** Os próximos módulos (Professores, Disciplinas...)
-serão implementados na ordem definida na especificação, um de cada vez.
+Status atual: **Módulos 1 a 4 concluídos e testados** — Usuários, Login,
+Dashboard e Professores. Os próximos módulos (Disciplinas, Turmas...) serão
+implementados na ordem definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -14,11 +14,15 @@ serão implementados na ordem definida na especificação, um de cada vez.
   Administrador e Coordenador.
 - Dashboard (`apps/dashboard`) com indicadores de usuários (total, ativos,
   inativos, gráfico por papel) e cartões para os indicadores acadêmicos
-  (professores, disciplinas, turmas, ambientes, carga horária, conflitos)
-  que aparecem como "Em breve" até os módulos correspondentes existirem.
+  (disciplinas, turmas, ambientes, carga horária, conflitos) que aparecem
+  como "Em breve" até os módulos correspondentes existirem — o cartão de
+  Professores já mostra a contagem real.
+- Cadastro de professores (`apps/professores`): nome, matrícula, e-mail,
+  telefone, carga horária semanal, ativo/inativo — restrito a
+  Administrador, Coordenador e Secretaria.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (12 testes cobrindo login, permissões e dashboard).
+- Testes automatizados (20 testes cobrindo login, permissões, dashboard e professores).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -65,6 +69,7 @@ python manage.py runserver
 config/            configurações do projeto (settings, urls)
 apps/usuarios/      Módulo 1 e 2 — usuários, login, permissões
 apps/dashboard/     Módulo 3 — indicadores e gráficos
+apps/professores/   Módulo 4 — cadastro de professores
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -73,18 +78,18 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard
+python manage.py test apps.usuarios apps.dashboard apps.professores
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Como não houve nenhum modelo novo neste módulo, não é preciso rodar migração.
-Basta reconstruir a imagem e reiniciar (é **obrigatório** o `--build`, pois
-entrou uma dependência nova — WhiteNoise, ver correção abaixo):
+Este módulo criou uma tabela nova (`professores_professor`), então é
+preciso migrar depois de atualizar:
 
 ```
 docker compose down
 docker compose up --build
+docker compose exec web python manage.py migrate
 ```
 
 ### Correção: layout quebrado em produção
@@ -102,7 +107,7 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Professores → Disciplinas → Turmas → Ambientes → Horários →
+Disciplinas → Turmas → Ambientes → Horários →
 Disponibilidade → Grade → Algoritmo automático (OR-Tools) → Calendário →
 Relatórios → Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
 
