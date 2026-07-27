@@ -35,10 +35,17 @@ class ServicesTests(TestCase):
         por_chave = {c['chave']: c['valor'] for c in cartoes}
         self.assertEqual(por_chave['disciplinas'], 1)
 
+    def test_cartao_turmas_mostra_contagem_real(self):
+        """Desde o Módulo 6, o app turmas existe: o cartão deixa de ser None."""
+        from apps.turmas.models import Turma, Turno
+        Turma.objects.create(nome='1º Ano A', serie='1º Ano', turno=Turno.MATUTINO)
+        cartoes = services.obter_cartoes_resumo()
+        por_chave = {c['chave']: c['valor'] for c in cartoes}
+        self.assertEqual(por_chave['turmas'], 1)
+
     def test_cartoes_modulos_ainda_nao_implementados_ficam_indisponiveis(self):
         cartoes = services.obter_cartoes_resumo()
         por_chave = {c['chave']: c['valor'] for c in cartoes}
-        self.assertIsNone(por_chave['turmas'])
         self.assertIsNone(por_chave['ambientes'])
         self.assertIsNone(por_chave['conflitos'])
 

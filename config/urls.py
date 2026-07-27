@@ -13,5 +13,6 @@ urlpatterns = [
     path('usuarios/', include('apps.usuarios.urls', namespace='usuarios')),
     path('professores/', include('apps.professores.urls', namespace='professores')),
     path('disciplinas/', include('apps.disciplinas.urls', namespace='disciplinas')),
+    path('turmas/', include('apps.turmas.urls', namespace='turmas')),
     path('', include('apps.dashboard.urls')),
 ]

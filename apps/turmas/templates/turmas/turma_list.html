@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block titulo %}Turmas{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Turmas</h1>
+    <a href="{% url 'turmas:criar' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Nova turma
+    </a>
+</div>
+
+<form method="get" class="mb-3">
+    <div class="input-group" style="max-width: 400px;">
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nome ou série">
+        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Série</th>
+                <th>Turno</th>
+                <th>Status</th>
+                <th class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in turmas %}
+            <tr>
+                <td>{{ t.nome }}</td>
+                <td>{{ t.serie }}</td>
+                <td><span class="badge text-bg-secondary">{{ t.get_turno_display }}</span></td>
+                <td>
+                    {% if t.ativo %}
+                        <span class="badge text-bg-success">Ativa</span>
+                    {% else %}
+                        <span class="badge text-bg-danger">Inativa</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{% url 'turmas:editar' t.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <form method="post" action="{% url 'turmas:alternar_ativo' t.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-{% if t.ativo %}danger{% else %}success{% endif %}"
+                                title="{% if t.ativo %}Desativar{% else %}Ativar{% endif %}">
+                            <i class="bi bi-{% if t.ativo %}dash-circle{% else %}check-circle{% endif %}"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Nenhuma turma cadastrada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
