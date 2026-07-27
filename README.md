@@ -1,8 +1,8 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulo 1 (Usuários) e Módulo 2 (Login) concluídos e testados.**
-Os próximos módulos (Dashboard, Professores, Disciplinas...) serão implementados
-na ordem definida na especificação, um de cada vez.
+Status atual: **Módulo 1 (Usuários), Módulo 2 (Login) e Módulo 3 (Dashboard)
+concluídos e testados.** Os próximos módulos (Professores, Disciplinas...)
+serão implementados na ordem definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -12,9 +12,13 @@ na ordem definida na especificação, um de cada vez.
   CSRF, cookies seguros e bloqueio de usuários inativos.
 - Cadastro de usuários (listar, criar, editar, ativar/desativar) — restrito a
   Administrador e Coordenador.
+- Dashboard (`apps/dashboard`) com indicadores de usuários (total, ativos,
+  inativos, gráfico por papel) e cartões para os indicadores acadêmicos
+  (professores, disciplinas, turmas, ambientes, carga horária, conflitos)
+  que aparecem como "Em breve" até os módulos correspondentes existirem.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (8 testes cobrindo login e permissões).
+- Testes automatizados (12 testes cobrindo login, permissões e dashboard).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -58,22 +62,32 @@ python manage.py runserver
 ## Estrutura de pastas
 
 ```
-config/           configurações do projeto (settings, urls)
-apps/usuarios/     Módulo 1 e 2 — usuários, login, permissões
-templates/         layout base (menu lateral, tema claro/escuro)
-static/            CSS e JavaScript do tema
-docker-compose.yml Django + PostgreSQL + Redis
+config/            configurações do projeto (settings, urls)
+apps/usuarios/      Módulo 1 e 2 — usuários, login, permissões
+apps/dashboard/     Módulo 3 — indicadores e gráficos
+templates/          layout base (menu lateral, tema claro/escuro)
+static/             CSS e JavaScript do tema
+docker-compose.yml  Django + PostgreSQL + Redis
 ```
 
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios
+python manage.py test apps.usuarios apps.dashboard
+```
+
+## Se você já tinha o projeto rodando (Docker)
+
+Como não houve nenhum modelo novo neste módulo, não é preciso rodar migração.
+Basta reconstruir a imagem e reiniciar:
+
+```
+docker compose up --build
 ```
 
 ## Próximos módulos (na ordem da especificação)
 
-Dashboard → Professores → Disciplinas → Turmas → Ambientes → Horários →
+Professores → Disciplinas → Turmas → Ambientes → Horários →
 Disponibilidade → Grade → Algoritmo automático (OR-Tools) → Calendário →
 Relatórios → Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
 
