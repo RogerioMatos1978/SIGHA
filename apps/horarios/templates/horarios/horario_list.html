@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block titulo %}Horários{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Horários</h1>
+    <a href="{% url 'horarios:criar' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Novo horário
+    </a>
+</div>
+<p class="text-muted">Estes são os horários usados para montar a grade. Cadastre-os na ordem em que acontecem no dia, incluindo os intervalos.</p>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Ordem</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in horarios %}
+            <tr class="{% if h.intervalo %}table-secondary{% endif %}">
+                <td>{{ h.ordem }}</td>
+                <td>{{ h.inicio|time:"H:i" }}</td>
+                <td>{{ h.fim|time:"H:i" }}</td>
+                <td>
+                    {% if h.intervalo %}
+                        <span class="badge text-bg-warning">Intervalo</span>
+                    {% else %}
+                        <span class="badge text-bg-info">Aula</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if h.ativo %}
+                        <span class="badge text-bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge text-bg-danger">Inativo</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{% url 'horarios:editar' h.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <form method="post" action="{% url 'horarios:alternar_ativo' h.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-{% if h.ativo %}danger{% else %}success{% endif %}"
+                                title="{% if h.ativo %}Desativar{% else %}Ativar{% endif %}">
+                            <i class="bi bi-{% if h.ativo %}dash-circle{% else %}check-circle{% endif %}"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">Nenhum horário cadastrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

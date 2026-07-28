@@ -45,6 +45,11 @@
                     <i class="bi bi-door-open-fill me-2"></i>Ambientes
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'horarios:lista' %}" class="nav-link {% if 'horarios' in request.resolver_match.namespaces %}active{% endif %}">
+                    <i class="bi bi-clock-fill me-2"></i>Horários
+                </a>
+            </li>
             {% endif %}
             {% if user.pode_gerenciar_usuarios %}
             <li class="nav-item">

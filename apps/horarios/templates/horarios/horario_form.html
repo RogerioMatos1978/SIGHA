@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if object %}Editar horário{% else %}Novo horário{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if object %}Editar horário{% else %}Novo horário{% endif %}</h1>
+
+<form method="post" novalidate class="row g-3" style="max-width: 600px;">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="col-md-4">
+        <label class="form-label">Ordem</label>
+        {{ form.ordem }}
+        {% for erro in form.ordem.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Início</label>
+        {{ form.inicio }}
+        {% for erro in form.inicio.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Fim</label>
+        {{ form.fim }}
+        {% for erro in form.fim.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-check">
+            {{ form.intervalo }}
+            <label class="form-check-label" for="{{ form.intervalo.id_for_label }}">É intervalo/recreio</label>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-check">
+            {{ form.ativo }}
+            <label class="form-check-label" for="{{ form.ativo.id_for_label }}">Ativo</label>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'horarios:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

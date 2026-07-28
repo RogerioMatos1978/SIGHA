@@ -1,9 +1,9 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 7 concluídos e testados** — Usuários, Login,
-Dashboard, Professores, Disciplinas, Turmas e Ambientes. Os próximos módulos
-(Horários, Disponibilidade...) serão implementados na ordem definida na
-especificação, um de cada vez.
+Status atual: **Módulos 1 a 8 concluídos e testados** — Usuários, Login,
+Dashboard, Professores, Disciplinas, Turmas, Ambientes e Horários. Os
+próximos módulos (Disponibilidade, Grade...) serão implementados na ordem
+definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -30,11 +30,15 @@ especificação, um de cada vez.
   simultâneo, ativo/inativo — essa capacidade é o dado que o futuro módulo
   de Grade vai usar para nunca marcar duas turmas no mesmo ambiente ao
   mesmo tempo quando a capacidade for 1.
+- Cadastro de horários (`apps/horarios`): ordem, início, fim, marcação de
+  intervalo/recreio, ativo/inativo — os "07:00, 07:50, 08:40... Intervalo..."
+  do exemplo da especificação, sempre configuráveis, nunca fixos no código.
+  Valida que o fim seja depois do início e que a ordem não se repita.
   Todos restritos a Administrador, Coordenador e Secretaria.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (42 testes cobrindo login, permissões, dashboard,
-  professores, disciplinas, turmas e ambientes).
+- Testes automatizados (51 testes cobrindo login, permissões, dashboard,
+  professores, disciplinas, turmas, ambientes e horários).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -85,6 +89,7 @@ apps/professores/   Módulo 4 — cadastro de professores
 apps/disciplinas/   Módulo 5 — cadastro de disciplinas
 apps/turmas/        Módulo 6 — cadastro de turmas
 apps/ambientes/     Módulo 7 — cadastro de ambientes
+apps/horarios/      Módulo 8 — configuração dos horários da grade
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -93,12 +98,12 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo criou uma tabela nova (`ambientes_ambiente`), então é
+Este módulo criou uma tabela nova (`horarios_horario`), então é
 preciso migrar depois de atualizar:
 
 ```
@@ -122,7 +127,7 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Horários → Disponibilidade → Grade → Algoritmo automático (OR-Tools) →
+Disponibilidade → Grade → Algoritmo automático (OR-Tools) →
 Calendário → Relatórios → Exportações (Excel/PDF/Word/PNG/JPEG) → API →
 Auditoria → Backup.
 
