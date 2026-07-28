@@ -1,10 +1,11 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 17 concluídos e testados** — Usuários, Login,
-Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
-Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário,
-Relatórios, Exportações, API, Auditoria e Backup. O próximo módulo
-(Testes) será implementado ao final, conforme a especificação.
+Status atual: **os 18 módulos da especificação estão concluídos e
+testados** — Usuários, Login, Dashboard, Professores, Disciplinas,
+Turmas, Ambientes, Horários, Disponibilidade, Grade, Algoritmo automático
+(OR-Tools), Calendário, Relatórios, Exportações, API, Auditoria, Backup e
+Testes (a suíte de integração de ponta a ponta + cobertura + CI descritas
+mais abaixo). O sistema está funcional de ponta a ponta.
 
 ## O que já funciona
 
@@ -120,13 +121,28 @@ Relatórios, Exportações, API, Auditoria e Backup. O próximo módulo
   backup sem precisar de ninguém logado) e
   `python manage.py limpar_backups_antigos` (remove os backups mais
   velhos que `BACKUP_RETENCAO_DIAS`, padrão 30 dias).
+- Testes (Módulo 18): além da suíte própria de cada um dos 17 módulos
+  anteriores, um teste de integração de ponta a ponta
+  (`tests_e2e/test_fluxo_completo.py`) percorre o fluxo real de uma
+  escola inteiro: cadastra professor/disciplina/turma/ambiente/horários,
+  atribui quem dá o quê, gera a grade automaticamente (OR-Tools), confere
+  o resultado na grade visual e no relatório de pendências, exporta em
+  Excel, confirma que a API mostra as mesmas aulas, confirma que a
+  Auditoria registrou tudo, gera um backup, apaga os dados e restaura —
+  provando que os 17 módulos continuam funcionando juntos, não só cada um
+  isoladamente. Também tem relatório de cobertura de código (`coverage`)
+  e uma pipeline de CI (`.github/workflows/testes.yml`) que roda a suíte
+  inteira automaticamente a cada push/pull request, contra um PostgreSQL
+  e um Redis de verdade.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (189 testes cobrindo login, permissões, dashboard,
-  professores, disciplinas, turmas, ambientes, horários, disponibilidade,
-  as regras de conflito da grade, o algoritmo automático de geração, o
-  calendário acadêmico, os relatórios, as exportações, a API, a auditoria
-  e o backup/restauração do banco).
+- Testes automatizados (190 testes: 189 nas suítes de cada módulo mais o
+  teste de integração de ponta a ponta) cobrindo login, permissões,
+  dashboard, professores, disciplinas, turmas, ambientes, horários,
+  disponibilidade, as regras de conflito da grade, o algoritmo automático
+  de geração, o calendário acadêmico, os relatórios, as exportações, a
+  API, a auditoria, o backup/restauração do banco e o fluxo completo
+  integrado.
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -187,20 +203,40 @@ apps/exportacoes/   Módulo 14 — exporta a grade em Excel/PDF/Word/PNG/JPEG
 apps/api/           Módulo 15 — API REST (Django REST Framework)
 apps/auditoria/     Módulo 16 — auditoria (quem fez o quê, login/logout)
 apps/backup/        Módulo 17 — backup e restauração do banco (pg_dump/psql)
+tests_e2e/          Módulo 18 — teste de integração de ponta a ponta
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
+.github/workflows/  CI — roda a suíte inteira a cada push/pull request
+executar_testes.py  roda todos os testes + relatório de cobertura, num comando só
 ```
 
 ## Rodando os testes
 
+Um comando só, com relatório de cobertura no final (recomendado):
+
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api apps.auditoria apps.backup
+python executar_testes.py
 ```
+
+Ou diretamente pelo `manage.py`, sem cobertura:
+
+```
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api apps.auditoria apps.backup tests_e2e.test_fluxo_completo
+```
+
+O relatório de cobertura em HTML fica em `htmlcov/index.html` depois de
+rodar `python executar_testes.py`.
+
+## Integração contínua (CI)
+
+Todo push e pull request roda a suíte inteira automaticamente (ver
+`.github/workflows/testes.yml`), contra um PostgreSQL e um Redis reais
+(serviços do próprio job), do mesmo jeito que roda localmente.
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo (Backup) criou tabela nova (`backup_registrobackup`) e mudou
+O Módulo 17 (Backup) criou tabela nova (`backup_registrobackup`) e mudou
 uma opção de campo já existente da Auditoria (nova ação "Restauração de
 backup") — depois de atualizar os arquivos, reconstrua a imagem (o
 Dockerfile agora também instala `postgresql-client`, necessário para
@@ -211,6 +247,10 @@ docker compose down
 docker compose up --build
 docker compose exec web python manage.py migrate
 ```
+
+O Módulo 18 (Testes) não mudou nada do banco nem da aplicação em
+produção — só adicionou testes, cobertura e CI —, então não precisa de
+nenhum passo extra além de atualizar os arquivos.
 
 ### Correção: layout quebrado em produção
 
@@ -225,10 +265,9 @@ foram corrigidas as regras de CSS do menu lateral (posição fixa
 explícita) e removido um carregamento duplicado do JavaScript do
 Bootstrap na tela de login.
 
-## Próximos módulos (na ordem da especificação)
+## Todos os módulos da especificação estão prontos
 
-Testes (Módulo 18 — a revisão final de testes automatizados de ponta a
-ponta prevista na especificação).
-
-Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
-igual foi feito aqui com Usuários e Login.
+Os 18 módulos previstos (Usuários → Testes) foram implementados um de
+cada vez, cada um só começando depois que o anterior estava funcionando
+de ponta a ponta — a mesma disciplina usada desde o primeiro módulo
+(Usuários e Login). O sistema está completo e testado.

@@ -1,0 +1,70 @@
+name: Testes
+
+# Módulo 18 (Testes): roda a suíte inteira do SIGHA automaticamente a
+# cada push/pull request, contra um PostgreSQL e um Redis de verdade
+# (serviços deste job) — o mesmo tipo de ambiente usado no
+# docker-compose.yml, não SQLite nem mocks.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sigha
+          POSTGRES_USER: sigha
+          POSTGRES_PASSWORD: sigha
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sigha"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SECRET_KEY: chave-usada-somente-no-ci
+      DJANGO_DEBUG: 'False'
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      DB_NAME: sigha
+      DB_USER: sigha
+      DB_PASSWORD: sigha
+      DB_HOST: localhost
+      DB_PORT: 5432
+      REDIS_URL: redis://localhost:6379/1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # postgresql-client: pg_dump/psql, usados pelos testes do Módulo 17 (Backup).
+      - name: Instalar dependências do sistema
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Instalar dependências Python
+        run: pip install -r requirements.txt
+
+      - name: Rodar migrações
+        run: python manage.py migrate --noinput
+
+      - name: Rodar a suíte de testes com cobertura
+        run: python executar_testes.py

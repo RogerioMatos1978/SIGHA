@@ -8,3 +8,5 @@ backups/
 .venv/
 venv/
 *.log
+.coverage
+htmlcov/

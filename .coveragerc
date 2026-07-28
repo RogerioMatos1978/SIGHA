@@ -1,0 +1,14 @@
+[run]
+source = apps
+omit =
+    */migrations/*
+    */tests.py
+    */tests/*
+    apps/*/apps.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __str__
+    raise NotImplementedError
+skip_empty = True
