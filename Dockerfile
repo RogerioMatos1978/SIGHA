@@ -10,8 +10,10 @@ WORKDIR /app
 # fonts-dejavu-core: usada pelo Módulo 14 (Exportações) para desenhar texto
 # legível nas imagens PNG/JPEG da grade — sem isso o Pillow cai numa fonte
 # bitmap minúscula.
+# postgresql-client: fornece pg_dump/psql, usados pelo Módulo 17 (Backup)
+# para gerar e restaurar os dumps do banco.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev gcc fonts-dejavu-core \
+    && apt-get install -y --no-install-recommends libpq-dev gcc fonts-dejavu-core postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

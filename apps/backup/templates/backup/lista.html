@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block titulo %}Backup{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h1 class="h3 mb-1">Backup</h1>
+        <p class="text-muted mb-0">Gere, baixe, restaure ou remova backups do banco de dados.</p>
+    </div>
+    <form method="post" action="{% url 'backup:gerar' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-cloud-arrow-up-fill me-2"></i>Gerar backup agora
+        </button>
+    </form>
+</div>
+
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Restaurar um backup <strong>substitui todos os dados atuais</strong> pelos dados daquele momento.
+    Essa ação não pode ser desfeita.
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Arquivo</th>
+                <th>Tamanho</th>
+                <th>Gerado por</th>
+                <th>Data/hora</th>
+                <th class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for backup in backups %}
+            <tr>
+                <td>
+                    {{ backup.nome_arquivo }}
+                    {% if not backup.existe_no_disco %}
+                    <span class="badge bg-danger ms-2">arquivo ausente</span>
+                    {% endif %}
+                </td>
+                <td>{{ backup.tamanho_legivel }}</td>
+                <td>{{ backup.criado_por.username|default:"comando agendado" }}</td>
+                <td class="text-nowrap">{{ backup.criado_em|date:"d/m/Y H:i:s" }}</td>
+                <td class="text-end text-nowrap">
+                    <a href="{% url 'backup:baixar' backup.pk %}" class="btn btn-sm btn-outline-secondary" title="Baixar">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#restaurar{{ backup.pk }}" title="Restaurar">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#excluir{{ backup.pk }}" title="Remover">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Nenhum backup gerado ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% for backup in backups %}
+<div class="modal fade" id="restaurar{{ backup.pk }}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'backup:restaurar' backup.pk %}">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Restaurar backup</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Isso vai <strong>substituir todos os dados atuais</strong> pelos dados de
+                        <code>{{ backup.nome_arquivo }}</code>.</p>
+                    <label class="form-label">Digite o nome do arquivo para confirmar:</label>
+                    <input type="text" name="confirmacao" class="form-control" placeholder="{{ backup.nome_arquivo }}" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Restaurar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="excluir{{ backup.pk }}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'backup:excluir' backup.pk %}">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Remover backup</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Remover <code>{{ backup.nome_arquivo }}</code> do histórico e do disco?
+                        Essa ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Remover</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

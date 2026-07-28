@@ -24,5 +24,6 @@ urlpatterns = [
     path('exportacoes/', include('apps.exportacoes.urls', namespace='exportacoes')),
     path('api/v1/', include('apps.api.urls', namespace='api')),
     path('auditoria/', include('apps.auditoria.urls', namespace='auditoria')),
+    path('backup/', include('apps.backup.urls', namespace='backup')),
     path('', include('apps.dashboard.urls')),
 ]

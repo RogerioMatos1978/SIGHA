@@ -19,6 +19,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.db.models.signals import post_delete, post_save
 
 from apps.ambientes.models import Ambiente
+from apps.backup.models import RegistroBackup
 from apps.calendario.models import Evento
 from apps.disciplinas.models import Disciplina
 from apps.disponibilidade.models import DisponibilidadeProfessor
@@ -36,6 +37,11 @@ logger = logging.getLogger('sigha.auditoria')
 MODELOS_AUDITADOS = [
     Usuario, Professor, Disciplina, Turma, Ambiente, Horario,
     DisponibilidadeProfessor, Atribuicao, GradeAula, Evento,
+    # RegistroBackup: gerar/remover um backup (Módulo 17) também aparece
+    # na Auditoria como CRIACAO/REMOCAO — a ação de RESTAURAR é diferente
+    # (não cria/apaga essa linha) e é gravada explicitamente em
+    # apps/backup/services.py, com a ação Acao.RESTAURACAO.
+    RegistroBackup,
 ]
 
 

@@ -89,6 +89,11 @@
                     <i class="bi bi-shield-lock-fill me-2"></i>Auditoria
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'backup:lista' %}" class="nav-link {% if 'backup' in request.resolver_match.namespaces %}active{% endif %}">
+                    <i class="bi bi-hdd-fill me-2"></i>Backup
+                </a>
+            </li>
             {% endif %}
         </ul>
         <hr>

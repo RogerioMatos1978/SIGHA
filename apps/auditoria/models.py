@@ -19,6 +19,7 @@ class Acao(models.TextChoices):
     CRIACAO = 'CRIACAO', 'Criação'
     ATUALIZACAO = 'ATUALIZACAO', 'Atualização'
     REMOCAO = 'REMOCAO', 'Remoção'
+    RESTAURACAO = 'RESTAURACAO', 'Restauração de backup'
     LOGIN = 'LOGIN', 'Login'
     LOGIN_FALHOU = 'LOGIN_FALHOU', 'Tentativa de login falhou'
     LOGOUT = 'LOGOUT', 'Logout'

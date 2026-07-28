@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'apps.exportacoes',
     'apps.api',
     'apps.auditoria',
+    'apps.backup',
 ]
 
 MIDDLEWARE = [
@@ -201,6 +202,18 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# ---------------------------------------------------------------------------
+# Backup (Módulo 17). Os dumps ficam fora do repositório/controle de
+# versão, num diretório próprio (padrão: BASE_DIR/backups, também citado
+# no .gitignore). PG_DUMP_BIN/PSQL_BIN podem apontar para um caminho
+# completo se `pg_dump`/`psql` não estiverem no PATH (ex.: nos testes
+# automatizados, que usam o Postgres embutido do sandbox).
+# ---------------------------------------------------------------------------
+BACKUP_DIR = Path(config('BACKUP_DIR', default=str(BASE_DIR / 'backups')))
+BACKUP_RETENCAO_DIAS = config('BACKUP_RETENCAO_DIAS', default=30, cast=int)
+PG_DUMP_BIN = config('PG_DUMP_BIN', default='pg_dump')
+PSQL_BIN = config('PSQL_BIN', default='psql')
 
 # ---------------------------------------------------------------------------
 # Logging básico. O Módulo 16 (Auditoria) grava seus próprios eventos no

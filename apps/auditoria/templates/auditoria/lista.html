@@ -51,6 +51,7 @@
                         {% if registro.acao == 'CRIACAO' %}bg-success
                         {% elif registro.acao == 'ATUALIZACAO' %}bg-primary
                         {% elif registro.acao == 'REMOCAO' %}bg-danger
+                        {% elif registro.acao == 'RESTAURACAO' %}bg-dark
                         {% elif registro.acao == 'LOGIN' %}bg-info text-dark
                         {% elif registro.acao == 'LOGIN_FALHOU' %}bg-warning text-dark
                         {% else %}bg-secondary{% endif %}">

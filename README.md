@@ -1,10 +1,10 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 16 concluídos e testados** — Usuários, Login,
+Status atual: **Módulos 1 a 17 concluídos e testados** — Usuários, Login,
 Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
 Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário,
-Relatórios, Exportações, API e Auditoria. Os próximos módulos (Backup,
-Testes) serão implementados na ordem definida na especificação, um de cada vez.
+Relatórios, Exportações, API, Auditoria e Backup. O próximo módulo
+(Testes) será implementado ao final, conforme a especificação.
 
 ## O que já funciona
 
@@ -108,12 +108,25 @@ Testes) serão implementados na ordem definida na especificação, um de cada ve
   passar a ser registrado. Filtros por modelo e por tipo de ação.
   Somente leitura — nem pelo admin do Django dá para editar ou apagar
   um registro de auditoria.
+- Backup (`apps/backup`): tela de backup (`/backup/`), restrita a
+  Administrador. Um clique gera um dump completo do banco (via `pg_dump`)
+  e guarda no histórico; dá para baixar qualquer backup gerado, restaurar
+  o banco a partir dele (via `psql`) ou removê-lo. Restaurar é a ação
+  mais sensível do sistema — só pede que se digite o nome exato do
+  arquivo para confirmar, e fica registrada na Auditoria (Módulo 16) com
+  uma ação própria ("Restauração de backup"), tenha dado certo ou não.
+  Também vêm dois comandos de terminal para quem quiser agendar via
+  cron/Tarefas do Windows: `python manage.py backup_automatico` (gera um
+  backup sem precisar de ninguém logado) e
+  `python manage.py limpar_backups_antigos` (remove os backups mais
+  velhos que `BACKUP_RETENCAO_DIAS`, padrão 30 dias).
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (171 testes cobrindo login, permissões, dashboard,
+- Testes automatizados (189 testes cobrindo login, permissões, dashboard,
   professores, disciplinas, turmas, ambientes, horários, disponibilidade,
   as regras de conflito da grade, o algoritmo automático de geração, o
-  calendário acadêmico, os relatórios, as exportações, a API e a auditoria).
+  calendário acadêmico, os relatórios, as exportações, a API, a auditoria
+  e o backup/restauração do banco).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -173,6 +186,7 @@ apps/relatorios/    Módulo 13 — relatórios somente leitura (carga horária, 
 apps/exportacoes/   Módulo 14 — exporta a grade em Excel/PDF/Word/PNG/JPEG
 apps/api/           Módulo 15 — API REST (Django REST Framework)
 apps/auditoria/     Módulo 16 — auditoria (quem fez o quê, login/logout)
+apps/backup/        Módulo 17 — backup e restauração do banco (pg_dump/psql)
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -181,13 +195,16 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api apps.auditoria
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api apps.auditoria apps.backup
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo (Auditoria) criou tabela nova (`auditoria_registroauditoria`) —
-depois de atualizar os arquivos, rode a migração:
+Este módulo (Backup) criou tabela nova (`backup_registrobackup`) e mudou
+uma opção de campo já existente da Auditoria (nova ação "Restauração de
+backup") — depois de atualizar os arquivos, reconstrua a imagem (o
+Dockerfile agora também instala `postgresql-client`, necessário para
+`pg_dump`/`psql`) e rode as migrações:
 
 ```
 docker compose down
@@ -210,7 +227,8 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Backup → Testes.
+Testes (Módulo 18 — a revisão final de testes automatizados de ponta a
+ponta prevista na especificação).
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.
