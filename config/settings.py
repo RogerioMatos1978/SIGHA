@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'apps.turmas',
     'apps.ambientes',
     'apps.horarios',
+    'apps.disponibilidade',
 ]
 
 MIDDLEWARE = [

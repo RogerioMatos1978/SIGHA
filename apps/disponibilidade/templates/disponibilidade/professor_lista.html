@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block titulo %}Disponibilidade{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Disponibilidade de professores</h1>
+<p class="text-muted">Escolha um professor para marcar em quais dias e horários ele está disponível para dar aula.</p>
+
+<form method="get" class="mb-3">
+    <div class="input-group" style="max-width: 400px;">
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nome ou matrícula">
+        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th class="text-end">Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in professores %}
+            <tr>
+                <td>{{ p.nome }}</td>
+                <td>{{ p.matricula }}</td>
+                <td class="text-end">
+                    <a href="{% url 'disponibilidade:editar' p.pk %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-calendar2-check me-1"></i>Gerenciar disponibilidade
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-4">Nenhum professor ativo cadastrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

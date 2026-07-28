@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load disponibilidade_extras %}
+{% block titulo %}Disponibilidade de {{ professor.nome }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h1 class="h3 mb-0">Disponibilidade — {{ professor.nome }}</h1>
+    <a href="{% url 'disponibilidade:lista' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
+</div>
+<p class="text-muted">Marque os horários em que este professor <strong>pode</strong> dar aula. Desmarque onde ele não está disponível.</p>
+
+{% if not grade %}
+<div class="alert alert-warning">
+    Nenhum horário de aula está cadastrado ainda. Cadastre os horários primeiro em
+    <a href="{% url 'horarios:lista' %}">Horários</a>.
+</div>
+{% else %}
+<form method="post">
+    {% csrf_token %}
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Horário</th>
+                    {% for valor, rotulo in dias %}
+                        <th>{{ rotulo }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for horario, por_dia in grade.items %}
+                <tr>
+                    <td class="text-nowrap">{{ horario.inicio|time:"H:i" }}–{{ horario.fim|time:"H:i" }}</td>
+                    {% for valor, rotulo in dias %}
+                        {% with registro=por_dia|get_item:valor %}
+                        <td>
+                            <input type="checkbox"
+                                   class="form-check-input"
+                                   name="disp_{{ horario.id }}_{{ valor }}"
+                                   {% if registro.disponivel %}checked{% endif %}>
+                        </td>
+                        {% endwith %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar disponibilidade</button>
+</form>
+{% endif %}
+{% endblock %}

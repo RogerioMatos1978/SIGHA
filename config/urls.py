@@ -16,5 +16,6 @@ urlpatterns = [
     path('turmas/', include('apps.turmas.urls', namespace='turmas')),
     path('ambientes/', include('apps.ambientes.urls', namespace='ambientes')),
     path('horarios/', include('apps.horarios.urls', namespace='horarios')),
+    path('disponibilidade/', include('apps.disponibilidade.urls', namespace='disponibilidade')),
     path('', include('apps.dashboard.urls')),
 ]
