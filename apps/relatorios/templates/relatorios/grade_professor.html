@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load grade_extras %}
+{% block titulo %}Grade por professor{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Grade por professor</h1>
+    <a href="{% url 'relatorios:home' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Voltar aos relatórios
+    </a>
+</div>
+
+<form method="get" class="row row-cols-auto g-2 align-items-end mb-3">
+    <div class="col">
+        <label class="form-label small mb-0">Professor</label>
+        <select name="professor" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Selecione...</option>
+            {% for p in professores %}
+            <option value="{{ p.pk }}" {% if professor and p.pk == professor.pk %}selected{% endif %}>{{ p.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <input type="hidden" name="ano" value="{{ ano_letivo }}">
+    <input type="hidden" name="semestre" value="{{ semestre }}">
+</form>
+
+{% if professor %}
+<h2 class="h5 mb-3">{{ professor.nome }} — {{ ano_letivo }}, {{ semestre }}º semestre</h2>
+{% if not grade %}
+<div class="alert alert-warning">Nenhum horário de aula está cadastrado ainda.</div>
+{% else %}
+<div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Horário</th>
+                {% for valor, rotulo in dias %}<th>{{ rotulo }}</th>{% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for horario, por_dia in grade.items %}
+            <tr>
+                <td class="text-nowrap">{{ horario.inicio|time:"H:i" }}–{{ horario.fim|time:"H:i" }}</td>
+                {% for valor, rotulo in dias %}
+                    {% with aula=por_dia|get_item:valor %}
+                    <td>
+                        {% if aula %}
+                        <div class="small">
+                            <strong>{{ aula.turma.nome }}</strong><br>
+                            <span class="text-muted">{{ aula.disciplina.sigla }}</span><br>
+                            <span class="text-muted">{{ aula.ambiente.nome }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endwith %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% else %}
+<p class="text-muted">Escolha um professor para ver a semana completa dele.</p>
+{% endif %}
+{% endblock %}

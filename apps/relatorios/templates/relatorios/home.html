@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block titulo %}Relatórios{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Relatórios</h1>
+<p class="text-muted">Ano letivo {{ ano_letivo }}, {{ semestre }}º semestre.</p>
+
+<div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+        <a href="{% url 'relatorios:grade_professor' %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="text-decoration-none">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="bi bi-person-video3 fs-2 text-primary mb-2 d-block"></i>
+                    <h2 class="h6">Grade por professor</h2>
+                    <p class="small text-muted mb-0">Veja a semana completa de um professor, em todas as turmas.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{% url 'relatorios:carga_horaria' %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="text-decoration-none">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="bi bi-clock-history fs-2 text-primary mb-2 d-block"></i>
+                    <h2 class="h6">Carga horária</h2>
+                    <p class="small text-muted mb-0">Ocupação da carga horária semanal de cada professor.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{% url 'relatorios:ocupacao_ambientes' %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="text-decoration-none">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="bi bi-door-open-fill fs-2 text-primary mb-2 d-block"></i>
+                    <h2 class="h6">Ocupação de ambientes</h2>
+                    <p class="small text-muted mb-0">Quanto cada sala/laboratório/quadra está sendo usado.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{% url 'relatorios:pendencias' %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="text-decoration-none">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="bi bi-list-check fs-2 text-primary mb-2 d-block"></i>
+                    <h2 class="h6">Pendências da grade</h2>
+                    <p class="small text-muted mb-0">Quais turmas ainda têm aulas faltando encaixar.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

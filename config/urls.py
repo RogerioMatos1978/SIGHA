@@ -20,5 +20,6 @@ urlpatterns = [
     path('grade/', include('apps.grade.urls', namespace='grade')),
     path('algoritmo/', include('apps.algoritmo.urls', namespace='algoritmo')),
     path('calendario/', include('apps.calendario.urls', namespace='calendario')),
+    path('relatorios/', include('apps.relatorios.urls', namespace='relatorios')),
     path('', include('apps.dashboard.urls')),
 ]

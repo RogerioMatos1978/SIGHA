@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block titulo %}Carga horária{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Carga horária por professor</h1>
+    <a href="{% url 'relatorios:home' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Voltar aos relatórios
+    </a>
+</div>
+<p class="text-muted">Ano letivo {{ ano_letivo }}, {{ semestre }}º semestre.</p>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Professor</th>
+                <th class="text-center">Aulas alocadas</th>
+                <th class="text-center">Carga horária máxima</th>
+                <th class="text-center">Livres</th>
+                <th style="width: 220px;">Ocupação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for linha in linhas %}
+            <tr>
+                <td>{{ linha.professor.nome }}</td>
+                <td class="text-center">{{ linha.alocadas }}</td>
+                <td class="text-center">{{ linha.maximo }}</td>
+                <td class="text-center">{{ linha.livres }}</td>
+                <td>
+                    <div class="progress" role="progressbar" style="height: 20px;">
+                        <div class="progress-bar {% if linha.percentual >= 100 %}bg-danger{% elif linha.percentual >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                             style="width: {{ linha.percentual }}%;">
+                            {{ linha.percentual }}%
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Nenhum professor ativo cadastrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

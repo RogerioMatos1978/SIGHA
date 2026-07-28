@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'apps.grade',
     'apps.algoritmo',
     'apps.calendario',
+    'apps.relatorios',
 ]
 
 MIDDLEWARE = [

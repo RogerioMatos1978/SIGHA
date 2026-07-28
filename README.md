@@ -1,10 +1,10 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 12 concluídos e testados** — Usuários, Login,
+Status atual: **Módulos 1 a 13 concluídos e testados** — Usuários, Login,
 Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
-Disponibilidade, Grade, Algoritmo automático (OR-Tools) e Calendário. Os
-próximos módulos (Relatórios, Exportações...) serão implementados na
-ordem definida na especificação, um de cada vez.
+Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário e
+Relatórios. Os próximos módulos (Exportações, API...) serão
+implementados na ordem definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -75,12 +75,19 @@ ordem definida na especificação, um de cada vez.
   "modelo" semanal. Clicar num dia mostra os eventos cadastrados e, se for
   dia letivo, as aulas previstas (de todas as turmas) naquele dia da
   semana. Restrito a Administrador, Coordenador e Secretaria.
+- Relatórios (`apps/relatorios`): quatro relatórios somente leitura, a
+  partir dos mesmos dados da Grade — grade semanal de um professor (em
+  todas as turmas que ele leciona), ocupação da carga horária de cada
+  professor (com barra de progresso), ocupação de cada ambiente em
+  relação à sua capacidade total, e pendências da grade (quais turmas
+  ainda têm aulas faltando encaixar, com atalho direto para gerar
+  automaticamente). Restrito a Administrador, Coordenador e Secretaria.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (111 testes cobrindo login, permissões, dashboard,
+- Testes automatizados (125 testes cobrindo login, permissões, dashboard,
   professores, disciplinas, turmas, ambientes, horários, disponibilidade,
-  as regras de conflito da grade, o algoritmo automático de geração e o
-  calendário acadêmico).
+  as regras de conflito da grade, o algoritmo automático de geração, o
+  calendário acadêmico e os relatórios).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -136,6 +143,7 @@ apps/disponibilidade/ Módulo 9 — disponibilidade dos professores
 apps/grade/         Módulo 10 — grade de horários (visual + regras de conflito + atribuições)
 apps/algoritmo/     Módulo 11 — geração automática da grade (OR-Tools)
 apps/calendario/    Módulo 12 — calendário acadêmico (feriados, eventos, provas)
+apps/relatorios/    Módulo 13 — relatórios somente leitura (carga horária, ocupação, pendências)
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -144,13 +152,21 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo criou uma tabela nova (`calendario_evento`), então é preciso
-migrar depois de atualizar:
+Este módulo (Relatórios) não criou nenhuma tabela nova — só rebuild e
+subir de novo é suficiente:
+
+```
+docker compose down
+docker compose up --build
+```
+
+O último módulo que exigiu migração foi o Calendário
+(`calendario_evento`):
 
 ```
 docker compose down
@@ -173,7 +189,7 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Relatórios → Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
+Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.
