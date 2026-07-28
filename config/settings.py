@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'apps.relatorios',
     'apps.exportacoes',
     'apps.api',
+    'apps.auditoria',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Guarda o usuário/IP da requisição atual para o Módulo 16 (Auditoria)
+    # saber quem fez cada alteração, mesmo dentro de um sinal post_save/
+    # post_delete (que não recebe o request). Precisa vir depois do
+    # AuthenticationMiddleware, que é quem resolve request.user.
+    'apps.auditoria.middleware.UsuarioAtualMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -197,7 +203,10 @@ REST_FRAMEWORK = {
 }
 
 # ---------------------------------------------------------------------------
-# Logging básico (Módulo 11 — Auditoria será expandido futuramente)
+# Logging básico. O Módulo 16 (Auditoria) grava seus próprios eventos no
+# banco (tabela auditoria_registroauditoria) para consulta pela tela;
+# aqui ficam só os logs técnicos de erro/exceção, que continuam indo
+# para o console (capturado pelo Docker/serviço de logs em produção).
 # ---------------------------------------------------------------------------
 LOGGING = {
     'version': 1,

@@ -39,3 +39,14 @@ class GerenciaAcademicoMixin(_NegaPorPapelMixin):
     def test_func(self):
         user = self.request.user
         return user.is_authenticated and user.pode_gerenciar_academico()
+
+
+class SomenteAdministradorMixin(_NegaPorPapelMixin):
+    """
+    Mixin de CBV para telas mais sensíveis que o cadastro acadêmico comum
+    — hoje, só a consulta de Auditoria (Módulo 16), que expõe quem mexeu
+    em quê no sistema inteiro, inclusive em registros de outros usuários.
+    """
+    def test_func(self):
+        user = self.request.user
+        return user.is_authenticated and user.is_administrador()

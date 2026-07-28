@@ -23,5 +23,6 @@ urlpatterns = [
     path('relatorios/', include('apps.relatorios.urls', namespace='relatorios')),
     path('exportacoes/', include('apps.exportacoes.urls', namespace='exportacoes')),
     path('api/v1/', include('apps.api.urls', namespace='api')),
+    path('auditoria/', include('apps.auditoria.urls', namespace='auditoria')),
     path('', include('apps.dashboard.urls')),
 ]

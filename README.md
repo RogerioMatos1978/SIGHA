@@ -1,10 +1,10 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 15 concluídos e testados** — Usuários, Login,
+Status atual: **Módulos 1 a 16 concluídos e testados** — Usuários, Login,
 Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
 Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário,
-Relatórios, Exportações e API. Os próximos módulos (Auditoria, Backup...)
-serão implementados na ordem definida na especificação, um de cada vez.
+Relatórios, Exportações, API e Auditoria. Os próximos módulos (Backup,
+Testes) serão implementados na ordem definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -97,12 +97,23 @@ serão implementados na ordem definida na especificação, um de cada vez.
   (Módulo 12) — nada que a tela impede consegue ser criado pela API.
   Autenticação por sessão (faça login pela tela web normalmente antes de
   chamar a API).
+- Auditoria (`apps/auditoria`): tela de consulta (`/auditoria/`), restrita
+  a Administrador, que mostra quem criou, alterou ou removeu qualquer
+  registro do sistema (professor, disciplina, turma, ambiente, horário,
+  disponibilidade, atribuição, aula da grade, evento do calendário e
+  usuário), além de todo login, logout e tentativa de login que falhou —
+  com data/hora, usuário, ação, modelo/objeto afetado e endereço IP.
+  Funciona por sinais do Django (`post_save`/`post_delete`), então nenhuma
+  tela ou view dos 15 módulos anteriores precisou ser alterada para isso
+  passar a ser registrado. Filtros por modelo e por tipo de ação.
+  Somente leitura — nem pelo admin do Django dá para editar ou apagar
+  um registro de auditoria.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (156 testes cobrindo login, permissões, dashboard,
+- Testes automatizados (171 testes cobrindo login, permissões, dashboard,
   professores, disciplinas, turmas, ambientes, horários, disponibilidade,
   as regras de conflito da grade, o algoritmo automático de geração, o
-  calendário acadêmico, os relatórios, as exportações e a API).
+  calendário acadêmico, os relatórios, as exportações, a API e a auditoria).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -161,6 +172,7 @@ apps/calendario/    Módulo 12 — calendário acadêmico (feriados, eventos, pr
 apps/relatorios/    Módulo 13 — relatórios somente leitura (carga horária, ocupação, pendências)
 apps/exportacoes/   Módulo 14 — exporta a grade em Excel/PDF/Word/PNG/JPEG
 apps/api/           Módulo 15 — API REST (Django REST Framework)
+apps/auditoria/     Módulo 16 — auditoria (quem fez o quê, login/logout)
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -169,22 +181,13 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api apps.auditoria
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo (API) não criou tabela nova nem dependência nova (o
-`djangorestframework` já estava no `requirements.txt` desde o Módulo 1,
-esperando por este momento) — só rebuild e subir de novo é suficiente:
-
-```
-docker compose down
-docker compose up --build
-```
-
-O último módulo que exigiu migração de banco foi o Calendário
-(`calendario_evento`):
+Este módulo (Auditoria) criou tabela nova (`auditoria_registroauditoria`) —
+depois de atualizar os arquivos, rode a migração:
 
 ```
 docker compose down
@@ -207,7 +210,7 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Auditoria → Backup.
+Backup → Testes.
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.

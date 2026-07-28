@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block titulo %}Auditoria{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Auditoria</h1>
+<p class="text-muted">Quem criou, alterou ou removeu cada registro do sistema, e os logins realizados.</p>
+
+<form method="get" class="row row-cols-auto g-2 align-items-end mb-3">
+    <div class="col">
+        <label class="form-label small mb-0">Modelo</label>
+        <select name="modelo" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            {% for modelo in modelos %}
+            <option value="{{ modelo }}" {% if modelo == request.GET.modelo %}selected{% endif %}>{{ modelo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <label class="form-label small mb-0">Ação</label>
+        <select name="acao" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            {% for valor, rotulo in acoes %}
+            <option value="{{ valor }}" {% if valor == request.GET.acao %}selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Filtrar</button>
+        <a href="{% url 'auditoria:lista' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Data/hora</th>
+                <th>Usuário</th>
+                <th>Ação</th>
+                <th>Modelo</th>
+                <th>Objeto</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registro in registros %}
+            <tr>
+                <td class="text-nowrap">{{ registro.criado_em|date:"d/m/Y H:i:s" }}</td>
+                <td>{{ registro.usuario.username|default:"—" }}</td>
+                <td>
+                    <span class="badge
+                        {% if registro.acao == 'CRIACAO' %}bg-success
+                        {% elif registro.acao == 'ATUALIZACAO' %}bg-primary
+                        {% elif registro.acao == 'REMOCAO' %}bg-danger
+                        {% elif registro.acao == 'LOGIN' %}bg-info text-dark
+                        {% elif registro.acao == 'LOGIN_FALHOU' %}bg-warning text-dark
+                        {% else %}bg-secondary{% endif %}">
+                        {{ registro.get_acao_display }}
+                    </span>
+                </td>
+                <td>{{ registro.modelo|default:"—" }}</td>
+                <td>{{ registro.objeto_repr|default:"—" }}</td>
+                <td>{{ registro.ip|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&modelo={{ request.GET.modelo }}&acao={{ request.GET.acao }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&modelo={{ request.GET.modelo }}&acao={{ request.GET.acao }}">Próxima</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -83,6 +83,13 @@
                 </a>
             </li>
             {% endif %}
+            {% if user.is_administrador %}
+            <li class="nav-item">
+                <a href="{% url 'auditoria:lista' %}" class="nav-link {% if 'auditoria' in request.resolver_match.namespaces %}active{% endif %}">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Auditoria
+                </a>
+            </li>
+            {% endif %}
         </ul>
         <hr>
         <div class="dropdown">
