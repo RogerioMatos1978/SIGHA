@@ -1,10 +1,10 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 14 concluídos e testados** — Usuários, Login,
+Status atual: **Módulos 1 a 15 concluídos e testados** — Usuários, Login,
 Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
 Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário,
-Relatórios e Exportações. Os próximos módulos (API, Auditoria...) serão
-implementados na ordem definida na especificação, um de cada vez.
+Relatórios, Exportações e API. Os próximos módulos (Auditoria, Backup...)
+serão implementados na ordem definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -88,12 +88,21 @@ implementados na ordem definida na especificação, um de cada vez.
   Reaproveita o mesmo grid da tela, então o arquivo baixado é sempre
   idêntico ao que está sendo mostrado. Restrito a Administrador,
   Coordenador e Secretaria.
+- API REST (`apps/api`, em `/api/v1/`): Professores, Disciplinas, Turmas,
+  Ambientes, Horários, Disponibilidade, Atribuições, Grade e Calendário
+  com CRUD completo (via [Django REST Framework](https://www.django-rest-framework.org/));
+  Usuários é somente leitura (criar/editar usuário com senha continua
+  exclusivo da tela web). Mesmas permissões por papel das telas web, e as
+  mesmas regras de conflito da Grade (Módulo 10) e de datas do Calendário
+  (Módulo 12) — nada que a tela impede consegue ser criado pela API.
+  Autenticação por sessão (faça login pela tela web normalmente antes de
+  chamar a API).
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (140 testes cobrindo login, permissões, dashboard,
+- Testes automatizados (156 testes cobrindo login, permissões, dashboard,
   professores, disciplinas, turmas, ambientes, horários, disponibilidade,
   as regras de conflito da grade, o algoritmo automático de geração, o
-  calendário acadêmico, os relatórios e as exportações).
+  calendário acadêmico, os relatórios, as exportações e a API).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -151,6 +160,7 @@ apps/algoritmo/     Módulo 11 — geração automática da grade (OR-Tools)
 apps/calendario/    Módulo 12 — calendário acadêmico (feriados, eventos, provas)
 apps/relatorios/    Módulo 13 — relatórios somente leitura (carga horária, ocupação, pendências)
 apps/exportacoes/   Módulo 14 — exporta a grade em Excel/PDF/Word/PNG/JPEG
+apps/api/           Módulo 15 — API REST (Django REST Framework)
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -159,16 +169,14 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes apps.api
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo (Exportações) não criou tabela nova, mas adicionou 4
-dependências Python novas (`openpyxl`, `reportlab`, `python-docx`,
-`Pillow`) e um pacote de sistema novo (`fonts-dejavu-core`, usado para
-desenhar texto legível nas imagens PNG/JPEG) — é preciso reconstruir a
-imagem:
+Este módulo (API) não criou tabela nova nem dependência nova (o
+`djangorestframework` já estava no `requirements.txt` desde o Módulo 1,
+esperando por este momento) — só rebuild e subir de novo é suficiente:
 
 ```
 docker compose down
@@ -199,7 +207,7 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-API → Auditoria → Backup.
+Auditoria → Backup.
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.
