@@ -21,5 +21,6 @@ urlpatterns = [
     path('algoritmo/', include('apps.algoritmo.urls', namespace='algoritmo')),
     path('calendario/', include('apps.calendario.urls', namespace='calendario')),
     path('relatorios/', include('apps.relatorios.urls', namespace='relatorios')),
+    path('exportacoes/', include('apps.exportacoes.urls', namespace='exportacoes')),
     path('', include('apps.dashboard.urls')),
 ]

@@ -6,9 +6,12 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Dependências de sistema exigidas pelo psycopg2 (driver PostgreSQL).
+# libpq-dev/gcc: exigidos pelo psycopg2 (driver PostgreSQL).
+# fonts-dejavu-core: usada pelo Módulo 14 (Exportações) para desenhar texto
+# legível nas imagens PNG/JPEG da grade — sem isso o Pillow cai numa fonte
+# bitmap minúscula.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev gcc \
+    && apt-get install -y --no-install-recommends libpq-dev gcc fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

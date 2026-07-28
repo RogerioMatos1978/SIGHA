@@ -1,9 +1,9 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 13 concluídos e testados** — Usuários, Login,
+Status atual: **Módulos 1 a 14 concluídos e testados** — Usuários, Login,
 Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
-Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário e
-Relatórios. Os próximos módulos (Exportações, API...) serão
+Disponibilidade, Grade, Algoritmo automático (OR-Tools), Calendário,
+Relatórios e Exportações. Os próximos módulos (API, Auditoria...) serão
 implementados na ordem definida na especificação, um de cada vez.
 
 ## O que já funciona
@@ -82,12 +82,18 @@ implementados na ordem definida na especificação, um de cada vez.
   relação à sua capacidade total, e pendências da grade (quais turmas
   ainda têm aulas faltando encaixar, com atalho direto para gerar
   automaticamente). Restrito a Administrador, Coordenador e Secretaria.
+- Exportações (`apps/exportacoes`): baixe a grade de uma turma (na tela da
+  Grade) ou de um professor (no relatório "Grade por professor") em
+  Excel, PDF, Word, PNG ou JPEG — os 5 formatos pedidos na especificação.
+  Reaproveita o mesmo grid da tela, então o arquivo baixado é sempre
+  idêntico ao que está sendo mostrado. Restrito a Administrador,
+  Coordenador e Secretaria.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (125 testes cobrindo login, permissões, dashboard,
+- Testes automatizados (140 testes cobrindo login, permissões, dashboard,
   professores, disciplinas, turmas, ambientes, horários, disponibilidade,
   as regras de conflito da grade, o algoritmo automático de geração, o
-  calendário acadêmico e os relatórios).
+  calendário acadêmico, os relatórios e as exportações).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -144,6 +150,7 @@ apps/grade/         Módulo 10 — grade de horários (visual + regras de confli
 apps/algoritmo/     Módulo 11 — geração automática da grade (OR-Tools)
 apps/calendario/    Módulo 12 — calendário acadêmico (feriados, eventos, provas)
 apps/relatorios/    Módulo 13 — relatórios somente leitura (carga horária, ocupação, pendências)
+apps/exportacoes/   Módulo 14 — exporta a grade em Excel/PDF/Word/PNG/JPEG
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -152,20 +159,23 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo apps.calendario apps.relatorios apps.exportacoes
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo (Relatórios) não criou nenhuma tabela nova — só rebuild e
-subir de novo é suficiente:
+Este módulo (Exportações) não criou tabela nova, mas adicionou 4
+dependências Python novas (`openpyxl`, `reportlab`, `python-docx`,
+`Pillow`) e um pacote de sistema novo (`fonts-dejavu-core`, usado para
+desenhar texto legível nas imagens PNG/JPEG) — é preciso reconstruir a
+imagem:
 
 ```
 docker compose down
 docker compose up --build
 ```
 
-O último módulo que exigiu migração foi o Calendário
+O último módulo que exigiu migração de banco foi o Calendário
 (`calendario_evento`):
 
 ```
@@ -189,7 +199,7 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
+API → Auditoria → Backup.
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.

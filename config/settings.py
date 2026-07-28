@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'apps.algoritmo',
     'apps.calendario',
     'apps.relatorios',
+    'apps.exportacoes',
 ]
 
 MIDDLEWARE = [

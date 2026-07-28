@@ -11,6 +11,18 @@
         <a href="{% url 'algoritmo:gerar' turma.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-magic me-1"></i>Gerar automaticamente
         </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download me-1"></i>Exportar
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'exportacoes:grade_turma' turma.pk 'excel' %}?ano={{ ano_letivo }}&semestre={{ semestre }}"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a></li>
+                <li><a class="dropdown-item" href="{% url 'exportacoes:grade_turma' turma.pk 'pdf' %}?ano={{ ano_letivo }}&semestre={{ semestre }}"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="{% url 'exportacoes:grade_turma' turma.pk 'word' %}?ano={{ ano_letivo }}&semestre={{ semestre }}"><i class="bi bi-file-earmark-word me-2"></i>Word</a></li>
+                <li><a class="dropdown-item" href="{% url 'exportacoes:grade_turma' turma.pk 'png' %}?ano={{ ano_letivo }}&semestre={{ semestre }}"><i class="bi bi-file-earmark-image me-2"></i>PNG</a></li>
+                <li><a class="dropdown-item" href="{% url 'exportacoes:grade_turma' turma.pk 'jpeg' %}?ano={{ ano_letivo }}&semestre={{ semestre }}"><i class="bi bi-file-earmark-image me-2"></i>JPEG</a></li>
+            </ul>
+        </div>
         <a href="{% url 'grade:lista' %}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i>Voltar
         </a>
