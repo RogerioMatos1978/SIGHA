@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block titulo %}Resultado da geração — {{ turma.nome }}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Resultado — {{ turma.nome }}</h1>
+
+<div class="alert alert-success">
+    <strong>{{ criadas }}</strong> aula(s) gerada(s) e salva(s) na grade
+    ({{ ano_letivo }}, {{ semestre }}º semestre).
+</div>
+
+{% if incompletas %}
+<div class="alert alert-warning">
+    <strong>Não foi possível encaixar todas as aulas necessárias:</strong>
+    <ul class="mb-0">
+        {% for item in incompletas %}
+        <li>{{ item.disciplina.nome }} com {{ item.professor.nome }}: faltaram {{ item.faltantes }} aula(s).
+            Verifique a disponibilidade do professor ou se há horários suficientes.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if sem_ambiente %}
+<div class="alert alert-warning">
+    <strong>Horário decidido, mas sem ambiente disponível:</strong>
+    <ul class="mb-0">
+        {% for item in sem_ambiente %}
+        <li>{{ item.disciplina.nome }} com {{ item.professor.nome }} — {{ item.dia_semana|capfirst }},
+            {{ item.horario.inicio|time:"H:i" }}–{{ item.horario.fim|time:"H:i" }}. Cadastre mais um
+            ambiente compatível em <a href="{% url 'ambientes:lista' %}">Ambientes</a>.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if falhas %}
+<div class="alert alert-danger">
+    <strong>Algumas propostas não puderam ser salvas:</strong>
+    <ul class="mb-0">
+        {% for falha in falhas %}
+        <li>{{ falha.proposta.disciplina.nome }} com {{ falha.proposta.professor.nome }}: {{ falha.erro }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<a href="{% url 'grade:visual' turma.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="btn btn-primary">
+    <i class="bi bi-grid-3x3 me-1"></i>Ver grade
+</a>
+<a href="{% url 'algoritmo:gerar' turma.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="btn btn-outline-secondary">
+    Gerar novamente
+</a>
+{% endblock %}

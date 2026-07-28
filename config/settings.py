@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.horarios',
     'apps.disponibilidade',
     'apps.grade',
+    'apps.algoritmo',
 ]
 
 MIDDLEWARE = [

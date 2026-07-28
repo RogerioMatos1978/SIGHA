@@ -4,9 +4,17 @@
 {% block conteudo %}
 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
     <h1 class="h3 mb-0">Grade — {{ turma.nome }} ({{ turma.get_turno_display }})</h1>
-    <a href="{% url 'grade:lista' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Voltar
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'grade:atribuicoes' turma.pk %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-person-lines-fill me-1"></i>Atribuições de professores
+        </a>
+        <a href="{% url 'algoritmo:gerar' turma.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-magic me-1"></i>Gerar automaticamente
+        </a>
+        <a href="{% url 'grade:lista' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
 </div>
 
 <form method="get" class="row row-cols-auto g-2 align-items-end mb-3">

@@ -121,3 +121,38 @@ class GradeAula(models.Model):
 
         if erros:
             raise ValidationError(erros)
+
+
+class Atribuicao(models.Model):
+    """
+    Diz quem ensina o quê para qual turma — a base de dados que o
+    algoritmo automático (Módulo 11, OR-Tools) usa para montar a grade
+    sozinho. Sem isto, o solver não teria como saber, por exemplo, que o
+    professor Carlos é quem dá Matemática para o 1º Ano A, nem quantas
+    aulas semanais precisa encaixar (isso vem de
+    `disciplina.quantidade_aulas_semana`).
+    """
+    turma = models.ForeignKey(
+        Turma, verbose_name='Turma', on_delete=models.CASCADE, related_name='atribuicoes',
+    )
+    disciplina = models.ForeignKey(
+        Disciplina, verbose_name='Disciplina', on_delete=models.CASCADE, related_name='atribuicoes',
+    )
+    professor = models.ForeignKey(
+        Professor, verbose_name='Professor', on_delete=models.CASCADE, related_name='atribuicoes',
+    )
+    ativo = models.BooleanField('Ativo', default=True)
+    criado_em = models.DateTimeField('Criado em', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Atribuição de professor'
+        verbose_name_plural = 'Atribuições de professores'
+        ordering = ['turma__nome', 'disciplina__nome']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['turma', 'disciplina'], name='atribuicao_unica_por_turma_disciplina',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.turma} — {self.disciplina.sigla} — {self.professor.nome}'

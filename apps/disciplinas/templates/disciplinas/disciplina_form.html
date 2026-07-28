@@ -24,7 +24,13 @@
         {{ form.quantidade_aulas_semana }}
         {% for erro in form.quantidade_aulas_semana.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
     </div>
-    <div class="col-md-8 d-flex align-items-end">
+    <div class="col-md-6">
+        <label class="form-label">Tipo de ambiente necessário</label>
+        {{ form.tipo_ambiente }}
+        <div class="form-text">Deixe em branco para usar uma sala comum.</div>
+        {% for erro in form.tipo_ambiente.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-6 d-flex align-items-end">
         <div class="form-check">
             {{ form.ativo }}
             <label class="form-check-label" for="{{ form.ativo.id_for_label }}">Disciplina ativa</label>

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block titulo %}Gerar grade — {{ turma.nome }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Gerar grade automaticamente — {{ turma.nome }}</h1>
+    <a href="{% url 'grade:visual' turma.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Voltar para a grade
+    </a>
+</div>
+<p class="text-muted">
+    Ano letivo {{ ano_letivo }}, {{ semestre }}º semestre. O algoritmo (OR-Tools) tenta encaixar
+    todas as aulas que faltam, respeitando disponibilidade, carga horária e conflitos com outras
+    turmas — sem sobrescrever aulas já lançadas manualmente, a não ser que você marque a opção abaixo.
+</p>
+
+{% if not resumo %}
+<div class="alert alert-warning">
+    Nenhuma atribuição de professor cadastrada para esta turma ainda. Cadastre em
+    <a href="{% url 'grade:atribuicoes' turma.pk %}">Atribuições de professores</a> antes de gerar.
+</div>
+{% else %}
+<div class="table-responsive mb-3">
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th class="text-center">Necessárias/semana</th>
+                <th class="text-center">Já na grade</th>
+                <th class="text-center">Faltam</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in resumo %}
+            <tr class="{% if item.faltantes == 0 %}table-success{% endif %}">
+                <td>{{ item.disciplina.nome }} ({{ item.disciplina.sigla }})</td>
+                <td>{{ item.professor.nome }}</td>
+                <td class="text-center">{{ item.necessarias }}</td>
+                <td class="text-center">{{ item.alocadas }}</td>
+                <td class="text-center">{{ item.faltantes }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="limpar_existentes" name="limpar_existentes">
+        <label class="form-check-label" for="limpar_existentes">
+            Apagar as aulas já lançadas desta turma neste período antes de gerar (começar do zero)
+        </label>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-magic me-1"></i>Gerar grade automaticamente</button>
+</form>
+{% endif %}
+{% endblock %}

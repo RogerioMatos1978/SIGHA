@@ -16,7 +16,7 @@ from apps.professores.models import Professor
 from apps.turmas.models import Turma, Turno
 from apps.usuarios.models import Papel, Usuario
 
-from .models import GradeAula, Semestre
+from .models import Atribuicao, GradeAula, Semestre
 
 
 class GradeBaseTestCase(TestCase):
@@ -202,3 +202,35 @@ class GradeViewsTests(GradeBaseTestCase):
         self.assertEqual(resposta.status_code, 302)
         aula.refresh_from_db()
         self.assertEqual(aula.professor, self.outro_professor)
+
+
+class AtribuicaoTests(GradeBaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.login(username='admin10', password=self.senha)
+
+    def test_criar_atribuicao(self):
+        resposta = self.client.post(reverse('grade:atribuicao_criar', args=[self.turma_a.pk]), {
+            'disciplina': self.disciplina.pk,
+            'professor': self.professor.pk,
+        })
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(Atribuicao.objects.count(), 1)
+
+    def test_nao_permite_duas_atribuicoes_para_mesma_disciplina_na_mesma_turma(self):
+        Atribuicao.objects.create(turma=self.turma_a, disciplina=self.disciplina, professor=self.professor)
+        duplicada = Atribuicao(turma=self.turma_a, disciplina=self.disciplina, professor=self.outro_professor)
+        with self.assertRaises(ValidationError):
+            duplicada.full_clean()
+
+    def test_listar_atribuicoes(self):
+        Atribuicao.objects.create(turma=self.turma_a, disciplina=self.disciplina, professor=self.professor)
+        resposta = self.client.get(reverse('grade:atribuicoes', args=[self.turma_a.pk]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, self.professor.nome)
+
+    def test_remover_atribuicao(self):
+        atribuicao = Atribuicao.objects.create(turma=self.turma_a, disciplina=self.disciplina, professor=self.professor)
+        resposta = self.client.post(reverse('grade:atribuicao_remover', args=[atribuicao.pk]))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(Atribuicao.objects.count(), 0)

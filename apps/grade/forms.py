@@ -9,7 +9,7 @@ validadas pelo `GradeAula.clean()` chamado explicitamente na view.
 """
 from django import forms
 
-from .models import GradeAula
+from .models import Atribuicao, GradeAula
 
 
 class GradeAulaForm(forms.ModelForm):
@@ -27,3 +27,23 @@ class GradeAulaForm(forms.ModelForm):
         self.fields['disciplina'].queryset = self.fields['disciplina'].queryset.filter(ativo=True)
         self.fields['professor'].queryset = self.fields['professor'].queryset.filter(ativo=True)
         self.fields['ambiente'].queryset = self.fields['ambiente'].queryset.filter(ativo=True)
+
+
+class AtribuicaoForm(forms.ModelForm):
+    """
+    Turma vem da URL (não aparece aqui). Só perguntamos qual disciplina e
+    qual professor — essa dupla é a entrada que o algoritmo automático
+    (Módulo 11) usa para montar a grade da turma sozinho.
+    """
+    class Meta:
+        model = Atribuicao
+        fields = ['disciplina', 'professor']
+        widgets = {
+            'disciplina': forms.Select(attrs={'class': 'form-select'}),
+            'professor': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['disciplina'].queryset = self.fields['disciplina'].queryset.filter(ativo=True)
+        self.fields['professor'].queryset = self.fields['professor'].queryset.filter(ativo=True)

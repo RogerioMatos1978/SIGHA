@@ -1,10 +1,10 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 10 concluídos e testados** — Usuários, Login,
+Status atual: **Módulos 1 a 11 concluídos e testados** — Usuários, Login,
 Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
-Disponibilidade e Grade. Os próximos módulos (Algoritmo automático com
-OR-Tools, Calendário...) serão implementados na ordem definida na
-especificação, um de cada vez.
+Disponibilidade, Grade e Algoritmo automático (OR-Tools). Os próximos
+módulos (Calendário, Relatórios...) serão implementados na ordem
+definida na especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -53,12 +53,25 @@ especificação, um de cada vez.
   no Módulo 7, o professor respeita a própria disponibilidade cadastrada
   no Módulo 9, e o professor nunca ultrapassa a própria carga horária
   semanal cadastrada no Módulo 4. Restrito a Administrador, Coordenador e
-  Secretaria.
+  Secretaria. Também é onde se cadastram as **atribuições** (qual
+  professor dá qual disciplina para qual turma) — a informação de entrada
+  que o Módulo 11 usa para gerar a grade sozinho.
+- Algoritmo automático (`apps/algoritmo`): botão "Gerar automaticamente"
+  na tela da Grade. Usa o [OR-Tools](https://developers.google.com/optimization)
+  (solver CP-SAT) para decidir o dia e o horário de cada aula das
+  atribuições cadastradas, respeitando disponibilidade do professor,
+  carga horária semanal e os compromissos que ele já tem em outras
+  turmas; depois escolhe o ambiente de cada aula respeitando a
+  capacidade cadastrada no Módulo 7. Nunca sobrescreve o que foi editado
+  manualmente — só preenche o que falta — e mostra um relatório do que
+  não coube (professor sem horário livre suficiente, ambiente sem vaga)
+  para o coordenador decidir o que ajustar. Toda aula gerada passa pela
+  mesma validação do Módulo 10, então nada conflitante é salvo.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (74 testes cobrindo login, permissões, dashboard,
-  professores, disciplinas, turmas, ambientes, horários, disponibilidade
-  e as regras de conflito da grade).
+- Testes automatizados (93 testes cobrindo login, permissões, dashboard,
+  professores, disciplinas, turmas, ambientes, horários, disponibilidade,
+  as regras de conflito da grade e o algoritmo automático de geração).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -111,7 +124,8 @@ apps/turmas/        Módulo 6 — cadastro de turmas
 apps/ambientes/     Módulo 7 — cadastro de ambientes
 apps/horarios/      Módulo 8 — configuração dos horários da grade
 apps/disponibilidade/ Módulo 9 — disponibilidade dos professores
-apps/grade/         Módulo 10 — grade de horários (visual + regras de conflito)
+apps/grade/         Módulo 10 — grade de horários (visual + regras de conflito + atribuições)
+apps/algoritmo/     Módulo 11 — geração automática da grade (OR-Tools)
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -120,13 +134,15 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade apps.algoritmo
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo criou uma tabela nova (`grade_gradeaula`), então é preciso
-migrar depois de atualizar:
+Este módulo criou uma tabela nova (`grade_atribuicao`) e um campo novo
+(`disciplinas_disciplina.tipo_ambiente`), então é preciso migrar depois
+de atualizar (e instalar a dependência nova, `ortools`, incluída no
+rebuild da imagem):
 
 ```
 docker compose down
@@ -149,8 +165,8 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Algoritmo automático (OR-Tools) → Calendário → Relatórios →
-Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
+Calendário → Relatórios → Exportações (Excel/PDF/Word/PNG/JPEG) →
+API → Auditoria → Backup.
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.

@@ -4,6 +4,7 @@ Testes do módulo Disciplinas: permissões de acesso e CRUD básico.
 from django.test import TestCase
 from django.urls import reverse
 
+from apps.ambientes.models import TipoAmbiente
 from apps.usuarios.models import Usuario, Papel
 from .models import Disciplina
 
@@ -56,3 +57,16 @@ class DisciplinaCrudTests(TestCase):
         self.client.post(reverse('disciplinas:alternar_ativo', args=[disciplina.pk]))
         disciplina.refresh_from_db()
         self.assertFalse(disciplina.ativo)
+
+    def test_tipo_ambiente_e_opcional(self):
+        disciplina = Disciplina.objects.create(nome='Português', sigla='POR', quantidade_aulas_semana=4)
+        self.assertIsNone(disciplina.tipo_ambiente)
+
+    def test_criar_disciplina_com_tipo_ambiente_especifico(self):
+        resposta = self.client.post(reverse('disciplinas:criar'), {
+            'nome': 'Educação Física', 'sigla': 'EDF', 'quantidade_aulas_semana': 2,
+            'tipo_ambiente': TipoAmbiente.QUADRA, 'ativo': 'on',
+        })
+        self.assertEqual(resposta.status_code, 302)
+        disciplina = Disciplina.objects.get(sigla='EDF')
+        self.assertEqual(disciplina.tipo_ambiente, TipoAmbiente.QUADRA)

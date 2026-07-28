@@ -22,8 +22,8 @@ from apps.horarios.models import Horario
 from apps.turmas.models import Turma
 
 from . import services
-from .forms import GradeAulaForm
-from .models import GradeAula, Semestre
+from .forms import AtribuicaoForm, GradeAulaForm
+from .models import Atribuicao, GradeAula, Semestre
 from .permissions import GerenciaAcademicoMixin
 
 
@@ -178,3 +178,49 @@ class GradeAulaDeleteView(LoginRequiredMixin, GerenciaAcademicoMixin, DeleteView
             f"{reverse('grade:visual', args=[self.object.turma_id])}"
             f"?ano={self.object.ano_letivo}&semestre={self.object.semestre}"
         )
+
+
+class AtribuicaoListView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
+    """Lista quem ensina o quê para uma turma — entrada do algoritmo automático."""
+    template_name = 'grade/atribuicao_lista.html'
+
+    def get(self, request, turma_id):
+        turma = get_object_or_404(Turma, pk=turma_id)
+        atribuicoes = Atribuicao.objects.filter(turma=turma).select_related('disciplina', 'professor')
+        return render(request, self.template_name, {'turma': turma, 'atribuicoes': atribuicoes})
+
+
+class AtribuicaoCreateView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
+    template_name = 'grade/atribuicao_form.html'
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.turma = get_object_or_404(Turma, pk=kwargs['turma_id'])
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, {'form': AtribuicaoForm(), 'turma': self.turma})
+
+    def post(self, request, *args, **kwargs):
+        form = AtribuicaoForm(request.POST)
+        if form.is_valid():
+            atribuicao = form.save(commit=False)
+            atribuicao.turma = self.turma
+            try:
+                atribuicao.full_clean()
+            except ValidationError as erro:
+                form.add_error(None, erro)
+                return render(request, self.template_name, {'form': form, 'turma': self.turma})
+            atribuicao.save()
+            messages.success(request, 'Atribuição criada com sucesso.')
+            return redirect('grade:atribuicoes', self.turma.pk)
+        return render(request, self.template_name, {'form': form, 'turma': self.turma})
+
+
+class AtribuicaoDeleteView(LoginRequiredMixin, GerenciaAcademicoMixin, DeleteView):
+    model = Atribuicao
+    template_name = 'grade/atribuicao_confirmar_remocao.html'
+    context_object_name = 'atribuicao'
+
+    def get_success_url(self):
+        messages.success(self.request, 'Atribuição removida.')
+        return reverse('grade:atribuicoes', args=[self.object.turma_id])

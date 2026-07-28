@@ -6,10 +6,10 @@ django-ratelimit>=4.1
 redis>=5.0
 gunicorn>=22.0
 whitenoise>=6.7
+ortools>=9.10        # Módulo 11 — motor de geração automática de grade (CP-SAT)
 
 # Serão adicionados nos próximos módulos:
 # openpyxl        (exportação Excel)
 # reportlab       (exportação PDF)
 # python-docx     (exportação Word)
 # Pillow          (exportação PNG/JPEG)
-# ortools         (motor de geração automática de grade)
