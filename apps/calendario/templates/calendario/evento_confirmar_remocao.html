@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block titulo %}Remover evento{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Remover evento</h1>
+<div class="alert alert-warning">
+    Tem certeza que deseja remover o evento <strong>{{ evento.titulo }}</strong> ({{ evento.data_inicio }})?
+</div>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Remover</button>
+    <a href="{% url 'calendario:mes' %}?ano={{ evento.data_inicio.year }}&mes={{ evento.data_inicio.month }}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load calendario_extras %}
+{% block titulo %}Calendário — {{ nome_mes }} {{ ano }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Calendário — {{ nome_mes }} {{ ano }}</h1>
+    <div class="d-flex gap-2 align-items-center">
+        <a href="?ano={{ ano_mes_anterior }}&mes={{ mes_anterior }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <a href="?ano={{ hoje.year }}&mes={{ hoje.month }}" class="btn btn-outline-secondary btn-sm">Hoje</a>
+        <a href="?ano={{ ano_mes_seguinte }}&mes={{ mes_seguinte }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        <a href="{% url 'calendario:evento_criar' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Novo evento
+        </a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered text-center align-middle" style="table-layout: fixed;">
+        <thead class="table-light">
+            <tr>
+                <th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th><th>Dom</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for semana in semanas %}
+            <tr>
+                {% for dia in semana %}
+                <td class="align-top p-1 {% if not dia.no_mes %}text-muted bg-body-tertiary{% endif %} {% if dia.data|igual:hoje %}border border-primary border-2{% endif %}" style="height: 100px; vertical-align: top;">
+                    <a href="{% url 'calendario:dia' dia.data.year dia.data.month dia.data.day %}" class="d-block text-decoration-none small fw-semibold {% if not dia.no_mes %}text-muted{% else %}text-body{% endif %}">
+                        {{ dia.data.day }}
+                    </a>
+                    {% for evento in dia.eventos|slice:":2" %}
+                    <span class="badge {{ evento.tipo|classe_badge_evento }} d-block text-truncate mb-1" title="{{ evento.titulo }}">
+                        {{ evento.titulo }}
+                    </span>
+                    {% endfor %}
+                    {% if dia.eventos|length > 2 %}
+                    <span class="small text-muted">+{{ dia.eventos|length|add:"-2" }}</span>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

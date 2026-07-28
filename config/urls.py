@@ -19,5 +19,6 @@ urlpatterns = [
     path('disponibilidade/', include('apps.disponibilidade.urls', namespace='disponibilidade')),
     path('grade/', include('apps.grade.urls', namespace='grade')),
     path('algoritmo/', include('apps.algoritmo.urls', namespace='algoritmo')),
+    path('calendario/', include('apps.calendario.urls', namespace='calendario')),
     path('', include('apps.dashboard.urls')),
 ]

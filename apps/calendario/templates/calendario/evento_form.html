@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if editando %}Editar evento{% else %}Novo evento{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if editando %}Editar evento{% else %}Novo evento{% endif %}</h1>
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger">
+    {% for erro in form.non_field_errors %}<div>{{ erro }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" novalidate class="row g-3" style="max-width: 600px;">
+    {% csrf_token %}
+    <div class="col-md-8">
+        <label class="form-label">Título</label>
+        {{ form.titulo }}
+        {% for erro in form.titulo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Tipo</label>
+        {{ form.tipo }}
+        {% for erro in form.tipo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Data de início</label>
+        {{ form.data_inicio }}
+        {% for erro in form.data_inicio.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Data de fim (opcional)</label>
+        {{ form.data_fim }}
+        {% for erro in form.data_fim.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Ano letivo</label>
+        {{ form.ano_letivo }}
+        {% for erro in form.ano_letivo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-12">
+        <label class="form-label">Descrição</label>
+        {{ form.descricao }}
+        {% for erro in form.descricao.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-12">
+        <div class="form-check">
+            {{ form.afeta_aulas }}
+            <label class="form-check-label" for="{{ form.afeta_aulas.id_for_label }}">
+                Não há aula normal neste período (feriado/recesso)
+            </label>
+        </div>
+    </div>
+
+    <div class="col-12 mt-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'calendario:mes' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
