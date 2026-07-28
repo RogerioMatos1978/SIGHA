@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block titulo %}{% if editando %}Editar aula{% else %}Nova aula{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if editando %}Editar aula{% else %}Nova aula{% endif %} — {{ turma.nome }}</h1>
+<p class="text-muted">
+    {{ dia_rotulo }}, {{ horario.inicio|time:"H:i" }}–{{ horario.fim|time:"H:i" }}
+    ({{ ano_letivo }} — {{ semestre }}º semestre)
+</p>
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger">
+    {% for erro in form.non_field_errors %}<div>{{ erro }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="row g-3" style="max-width: 500px;">
+    {% csrf_token %}
+    <div class="col-12">
+        <label class="form-label">Disciplina</label>
+        {{ form.disciplina }}
+        {% if form.disciplina.errors %}<div class="text-danger small">{{ form.disciplina.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-12">
+        <label class="form-label">Professor</label>
+        {{ form.professor }}
+        {% if form.professor.errors %}<div class="text-danger small">{{ form.professor.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-12">
+        <label class="form-label">Ambiente</label>
+        {{ form.ambiente }}
+        {% if form.ambiente.errors %}<div class="text-danger small">{{ form.ambiente.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'grade:visual' turma.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

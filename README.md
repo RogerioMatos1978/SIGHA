@@ -1,9 +1,10 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **Módulos 1 a 9 concluídos e testados** — Usuários, Login,
-Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários e
-Disponibilidade. Os próximos módulos (Grade, Algoritmo automático...) serão
-implementados na ordem definida na especificação, um de cada vez.
+Status atual: **Módulos 1 a 10 concluídos e testados** — Usuários, Login,
+Dashboard, Professores, Disciplinas, Turmas, Ambientes, Horários,
+Disponibilidade e Grade. Os próximos módulos (Algoritmo automático com
+OR-Tools, Calendário...) serão implementados na ordem definida na
+especificação, um de cada vez.
 
 ## O que já funciona
 
@@ -14,10 +15,11 @@ implementados na ordem definida na especificação, um de cada vez.
 - Cadastro de usuários (listar, criar, editar, ativar/desativar) — restrito a
   Administrador e Coordenador.
 - Dashboard (`apps/dashboard`) com indicadores de usuários (total, ativos,
-  inativos, gráfico por papel) e cartões para os indicadores acadêmicos
-  (carga horária, horários livres, conflitos) que aparecem como "Em breve"
-  até o módulo de Grade existir — Professores, Disciplinas, Turmas e
-  Ambientes já mostram a contagem real.
+  inativos, gráfico por papel) e cartões para os indicadores acadêmicos —
+  agora que o módulo de Grade existe, todos os cartões mostram números
+  reais: professores, disciplinas, turmas, ambientes, aulas já encaixadas
+  na grade no ano atual, horários ainda livres e conflitos encontrados
+  (sempre 0, porque o próprio sistema nunca permite salvar um conflito).
 - Cadastro de professores (`apps/professores`): nome, matrícula, e-mail,
   telefone, carga horária semanal, ativo/inativo.
 - Cadastro de disciplinas (`apps/disciplinas`): nome, sigla (normalizada
@@ -41,10 +43,22 @@ implementados na ordem definida na especificação, um de cada vez.
   Este é o dado que o futuro algoritmo (OR-Tools) vai usar para nunca
   escalar um professor num horário que ele marcou como indisponível.
   Todos restritos a Administrador, Coordenador e Secretaria.
+- Grade (`apps/grade`): a tela principal do sistema — para cada turma, uma
+  visualização estilo Excel (dias nas colunas, horários nas linhas) onde
+  cada célula é uma aula (disciplina, professor, ambiente). Controlada por
+  ano letivo e semestre. Nenhuma aula conflitante consegue ser salva,
+  porque o próprio modelo valida antes de gravar: turma não pode ter duas
+  aulas ao mesmo tempo, professor não pode estar em duas turmas ao mesmo
+  tempo, o ambiente respeita sua capacidade de uso simultâneo cadastrada
+  no Módulo 7, o professor respeita a própria disponibilidade cadastrada
+  no Módulo 9, e o professor nunca ultrapassa a própria carga horária
+  semanal cadastrada no Módulo 4. Restrito a Administrador, Coordenador e
+  Secretaria.
 - Interface Bootstrap 5, responsiva, com tema claro/escuro.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (57 testes cobrindo login, permissões, dashboard,
-  professores, disciplinas, turmas, ambientes, horários e disponibilidade).
+- Testes automatizados (74 testes cobrindo login, permissões, dashboard,
+  professores, disciplinas, turmas, ambientes, horários, disponibilidade
+  e as regras de conflito da grade).
 - Estrutura pronta para rodar em Docker Compose (Django + PostgreSQL + Redis).
 
 ## Como rodar (recomendado: Docker)
@@ -97,6 +111,7 @@ apps/turmas/        Módulo 6 — cadastro de turmas
 apps/ambientes/     Módulo 7 — cadastro de ambientes
 apps/horarios/      Módulo 8 — configuração dos horários da grade
 apps/disponibilidade/ Módulo 9 — disponibilidade dos professores
+apps/grade/         Módulo 10 — grade de horários (visual + regras de conflito)
 templates/          layout base (menu lateral, tema claro/escuro)
 static/             CSS e JavaScript do tema
 docker-compose.yml  Django + PostgreSQL + Redis
@@ -105,13 +120,13 @@ docker-compose.yml  Django + PostgreSQL + Redis
 ## Rodando os testes
 
 ```
-python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade
+python manage.py test apps.usuarios apps.dashboard apps.professores apps.disciplinas apps.turmas apps.ambientes apps.horarios apps.disponibilidade apps.grade
 ```
 
 ## Se você já tinha o projeto rodando (Docker)
 
-Este módulo criou uma tabela nova (`disponibilidade_disponibilidadeprofessor`),
-então é preciso migrar depois de atualizar:
+Este módulo criou uma tabela nova (`grade_gradeaula`), então é preciso
+migrar depois de atualizar:
 
 ```
 docker compose down
@@ -134,9 +149,8 @@ Bootstrap na tela de login.
 
 ## Próximos módulos (na ordem da especificação)
 
-Grade → Algoritmo automático (OR-Tools) →
-Calendário → Relatórios → Exportações (Excel/PDF/Word/PNG/JPEG) → API →
-Auditoria → Backup.
+Algoritmo automático (OR-Tools) → Calendário → Relatórios →
+Exportações (Excel/PDF/Word/PNG/JPEG) → API → Auditoria → Backup.
 
 Cada módulo só começa depois que o anterior está funcionando de ponta a ponta,
 igual foi feito aqui com Usuários e Login.

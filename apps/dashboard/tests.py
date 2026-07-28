@@ -51,10 +51,41 @@ class ServicesTests(TestCase):
         por_chave = {c['chave']: c['valor'] for c in cartoes}
         self.assertEqual(por_chave['ambientes'], 1)
 
-    def test_cartoes_modulos_ainda_nao_implementados_ficam_indisponiveis(self):
+    def test_cartao_conflitos_mostra_zero_desde_o_modulo_grade(self):
+        """
+        Desde o Módulo 10 (Grade), este cartão deixa de ser "Em breve": as
+        regras de conflito impedem qualquer aula conflitante de ser salva,
+        então "0 conflitos" é sempre um valor real, não um placeholder.
+        """
         cartoes = services.obter_cartoes_resumo()
         por_chave = {c['chave']: c['valor'] for c in cartoes}
-        self.assertIsNone(por_chave['conflitos'])
+        self.assertEqual(por_chave['conflitos'], 0)
+
+    def test_cartao_carga_horaria_conta_aulas_da_grade_no_ano_atual(self):
+        from django.utils import timezone
+
+        from apps.disponibilidade.models import DiaSemana
+        from apps.grade.models import GradeAula, Semestre
+        from apps.horarios.models import Horario
+        from apps.professores.models import Professor
+        from apps.turmas.models import Turma, Turno
+        from apps.ambientes.models import Ambiente, TipoAmbiente
+        from apps.disciplinas.models import Disciplina
+        import datetime
+
+        turma = Turma.objects.create(nome='2º Ano A', serie='2º Ano', turno=Turno.MATUTINO)
+        disciplina = Disciplina.objects.create(nome='Português', sigla='POR', quantidade_aulas_semana=5)
+        professor = Professor.objects.create(nome='Ana', matricula='PGRADE1', carga_horaria=20)
+        ambiente = Ambiente.objects.create(nome='Sala Dashboard', tipo=TipoAmbiente.SALA, capacidade=1)
+        horario = Horario.objects.create(ordem=1, inicio=datetime.time(7, 0), fim=datetime.time(7, 50))
+        GradeAula.objects.create(
+            turma=turma, disciplina=disciplina, professor=professor, ambiente=ambiente,
+            dia_semana=DiaSemana.SEGUNDA, horario=horario,
+            ano_letivo=timezone.now().year, semestre=Semestre.PRIMEIRO,
+        )
+        cartoes = services.obter_cartoes_resumo()
+        por_chave = {c['chave']: c['valor'] for c in cartoes}
+        self.assertEqual(por_chave['carga_horaria'], 1)
 
 
 class DashboardViewTests(TestCase):

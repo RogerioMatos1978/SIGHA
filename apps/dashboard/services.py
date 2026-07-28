@@ -13,6 +13,7 @@ template não precisam mudar.
 """
 from django.apps import apps as django_apps
 from django.db.models import Count
+from django.utils import timezone
 
 from apps.usuarios.models import Usuario
 
@@ -27,6 +28,40 @@ def _contar_modelo(app_label, nome_modelo):
     except LookupError:
         return None
     return modelo.objects.count()
+
+
+def _indicadores_da_grade():
+    """
+    A partir do Módulo 10 (Grade), calculamos estes três indicadores com
+    dados reais em vez de "Em breve":
+
+    - carga_horaria: total de aulas já encaixadas na grade no ano corrente
+      (proxy simples da carga horária semanal ocupada em toda a escola).
+    - horarios_livres: quantos espaços turma×horário×dia ainda estão vagos,
+      considerando as turmas ativas e os horários de aula cadastrados.
+    - conflitos: sempre 0 — as regras de `GradeAula.clean()` e as
+      constraints do banco impedem que qualquer conflito chegue a ser
+      salvo, então "conflitos encontrados" é um número real, não um chute.
+
+    Se o módulo de Grade ainda não existir (projeto rodando com uma versão
+    mais antiga do banco), os três voltam a aparecer como "Em breve".
+    """
+    try:
+        GradeAula = django_apps.get_model('grade', 'GradeAula')
+        Turma = django_apps.get_model('turmas', 'Turma')
+        Horario = django_apps.get_model('horarios', 'Horario')
+    except LookupError:
+        return {'carga_horaria': None, 'horarios_livres': None, 'conflitos': None}
+
+    ano_atual = timezone.now().year
+    carga_horaria = GradeAula.objects.filter(ano_letivo=ano_atual).count()
+
+    turmas_ativas = Turma.objects.filter(ativo=True).count()
+    horarios_ativos = Horario.objects.filter(ativo=True, intervalo=False).count()
+    total_slots = turmas_ativas * horarios_ativos * 5  # 5 dias letivos (segunda a sexta)
+    horarios_livres = max(total_slots - carga_horaria, 0)
+
+    return {'carga_horaria': carga_horaria, 'horarios_livres': horarios_livres, 'conflitos': 0}
 
 
 def obter_indicadores_usuarios():
@@ -49,6 +84,7 @@ def obter_cartoes_resumo():
     Cartões principais do dashboard. 'valor' None = módulo futuro,
     o template mostra "em breve" nesse caso.
     """
+    indicadores_grade = _indicadores_da_grade()
     return [
         {'chave': 'professores', 'titulo': 'Professores', 'icone': 'bi-person-workspace',
          'valor': _contar_modelo('professores', 'Professor')},
@@ -58,10 +94,10 @@ def obter_cartoes_resumo():
          'valor': _contar_modelo('turmas', 'Turma')},
         {'chave': 'ambientes', 'titulo': 'Ambientes', 'icone': 'bi-door-open-fill',
          'valor': _contar_modelo('ambientes', 'Ambiente')},
-        {'chave': 'carga_horaria', 'titulo': 'Carga horária semanal', 'icone': 'bi-clock-history',
-         'valor': None},
+        {'chave': 'carga_horaria', 'titulo': 'Aulas na grade (ano atual)', 'icone': 'bi-clock-history',
+         'valor': indicadores_grade['carga_horaria']},
         {'chave': 'horarios_livres', 'titulo': 'Horários livres', 'icone': 'bi-calendar2-check',
-         'valor': None},
+         'valor': indicadores_grade['horarios_livres']},
         {'chave': 'conflitos', 'titulo': 'Conflitos encontrados', 'icone': 'bi-exclamation-triangle-fill',
-         'valor': None},
+         'valor': indicadores_grade['conflitos']},
     ]

@@ -55,6 +55,11 @@
                     <i class="bi bi-calendar2-check me-2"></i>Disponibilidade
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'grade:lista' %}" class="nav-link {% if 'grade' in request.resolver_match.namespaces %}active{% endif %}">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i>Grade
+                </a>
+            </li>
             {% endif %}
             {% if user.pode_gerenciar_usuarios %}
             <li class="nav-item">

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load grade_extras %}
+{% block titulo %}Grade — {{ turma.nome }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Grade — {{ turma.nome }} ({{ turma.get_turno_display }})</h1>
+    <a href="{% url 'grade:lista' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
+</div>
+
+<form method="get" class="row row-cols-auto g-2 align-items-end mb-3">
+    <div class="col">
+        <label class="form-label small mb-0">Ano letivo</label>
+        <input type="number" name="ano" value="{{ ano_letivo }}" class="form-control form-control-sm" style="width: 110px;">
+    </div>
+    <div class="col">
+        <label class="form-label small mb-0">Semestre</label>
+        <select name="semestre" class="form-select form-select-sm">
+            {% for valor, rotulo in semestres %}
+            <option value="{{ valor }}" {% if valor == semestre %}selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Aplicar</button>
+    </div>
+</form>
+
+{% if not grade %}
+<div class="alert alert-warning">
+    Nenhum horário de aula está cadastrado ainda. Cadastre os horários primeiro em
+    <a href="{% url 'horarios:lista' %}">Horários</a>.
+</div>
+{% else %}
+<div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Horário</th>
+                {% for valor, rotulo in dias %}
+                    <th>{{ rotulo }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for horario, por_dia in grade.items %}
+            <tr>
+                <td class="text-nowrap">{{ horario.inicio|time:"H:i" }}–{{ horario.fim|time:"H:i" }}</td>
+                {% for valor, rotulo in dias %}
+                    {% with aula=por_dia|get_item:valor %}
+                    <td style="min-width: 150px;">
+                        {% if aula %}
+                            <div class="small">
+                                <strong>{{ aula.disciplina.sigla }}</strong><br>
+                                <span class="text-muted">{{ aula.professor.nome }}</span><br>
+                                <span class="text-muted">{{ aula.ambiente.nome }}</span>
+                            </div>
+                            <div class="mt-1">
+                                <a href="{% url 'grade:editar' aula.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'grade:remover' aula.pk %}" class="btn btn-sm btn-outline-danger" title="Remover">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'grade:criar' turma.pk valor horario.pk %}?ano={{ ano_letivo }}&semestre={{ semestre }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-lg"></i>
+                            </a>
+                        {% endif %}
+                    </td>
+                    {% endwith %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
