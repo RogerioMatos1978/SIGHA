@@ -29,15 +29,39 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000
+             --workers 3 --threads 2 --timeout 60"
+    # SEM bind mount do código (".:/app") de propósito: sem "--reload" no
+    # gunicorn abaixo, montar a pasta ao vivo não trazia nenhum ganho real
+    # (é preciso reiniciar o container de qualquer jeito para pegar
+    # mudanças) e só trazia prejuízo — nesta máquina o projeto vive numa
+    # pasta sincronizada pelo OneDrive, e Docker Desktop lendo arquivo por
+    # arquivo direto de uma pasta sincronizada é uma combinação
+    # classicamente lenta. Agora o código roda a partir da imagem (via
+    # "COPY . ." no Dockerfile) — depois de editar o código, suba de novo
+    # com "docker-compose up --build" para reconstruir a imagem.
     volumes:
-      - .:/app
       - sigha_static:/app/staticfiles
+      # Sem o bind mount do código, os dumps do Módulo 17 (Backup) também
+      # precisam de um volume próprio — senão ficariam na camada gravável
+      # do container e sumiriam no próximo "docker-compose up --build".
+      - sigha_backups:/app/backups
     env_file:
       - .env
     environment:
       DB_HOST: db
-      REDIS_URL: redis://redis:6379/1
+      REDIS_URL: redis://redis:6379/1?socket_connect_timeout=3&socket_timeout=3
+      # Sistema muito lento para acessar (revisão de performance): o .env
+      # local (usado também pelo runserver de desenvolvimento) tem
+      # DJANGO_DEBUG=True, o que desliga o cache de templates do Django —
+      # cada página recompila TODOS os templates do zero a cada requisição,
+      # lendo do disco a cada vez. Isso já seria lento; combinado com o
+      # bind mount ".:/app" (o código roda direto da pasta do Windows
+      # sincronizada pelo OneDrive, que é bem mais lenta que o sistema de
+      # arquivos nativo do Linux), fica MUITO lento. Forçamos DEBUG=False
+      # só aqui no container do docker-compose (não mexe no .env, então o
+      # runserver local continua com DEBUG=True normalmente para debugar).
+      DJANGO_DEBUG: "False"
     ports:
       - "8000:8000"
     depends_on:
@@ -49,3 +73,4 @@ services:
 volumes:
   sigha_postgres_data:
   sigha_static:
+  sigha_backups:

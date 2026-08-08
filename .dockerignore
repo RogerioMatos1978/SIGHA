@@ -2,8 +2,14 @@ __pycache__
 *.pyc
 .env
 .git
+.idea
+.github
 db.sqlite3
 staticfiles
 media
+backups
 .venv
 venv
+*.log
+.coverage
+htmlcov

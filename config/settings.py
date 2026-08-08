@@ -179,11 +179,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Cache — usado pelo django-ratelimit (proteção de força bruta no login).
 # Precisa ser um backend compartilhado com incremento atômico; por isso
 # usamos Redis (serviço próprio no docker-compose.yml).
+#
+# "Sistema muito lento para acessar" (revisão de performance): sem um
+# timeout explícito, se o Redis estiver fora do ar ou lento, a tela de
+# LOGIN (a própria "porta de entrada" do sistema, protegida pelo
+# django-ratelimit) fica pendurada esperando a conexão em vez de falhar
+# rápido — o timeout do sistema operacional para isso pode passar de um
+# minuto. Com socket_connect_timeout/socket_timeout, no pior caso o login
+# falha em poucos segundos (com erro visível nos logs) em vez de travar.
 # ---------------------------------------------------------------------------
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': config('REDIS_URL', default='redis://redis:6379/1'),
+        'LOCATION': config(
+            'REDIS_URL',
+            default='redis://redis:6379/1?socket_connect_timeout=3&socket_timeout=3',
+        ),
     }
 }
 

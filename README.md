@@ -373,6 +373,41 @@ O Módulo 18 (Testes) não mudou nada do banco nem da aplicação em
 produção — só adicionou testes, cobertura e CI —, então não precisa de
 nenhum passo extra além de atualizar os arquivos.
 
+### Revisão de performance ("sistema muito lento para acessar")
+
+O `docker-compose.yml` mudou para corrigir uma lentidão real: o Gunicorn
+rodava com um único processo (`--workers 3 --threads 2` agora), o
+container rodava com `DJANGO_DEBUG=True` (o que desliga o cache de
+templates do Django — cada página recompilava tudo do zero), o Redis não
+tinha timeout (login podia ficar pendurado se o Redis estivesse lento em
+vez de falhar rápido), e o container montava o código ao vivo da pasta
+do projeto (`.:/app`) — nesta máquina, uma pasta sincronizada pelo
+OneDrive, o que é uma combinação classicamente lenta com Docker Desktop
+no Windows. Depois de atualizar os arquivos:
+
+```
+docker compose down
+docker compose up --build
+```
+
+Duas consequências dessa mudança:
+
+- **O código agora vem só da imagem** (não é mais lido ao vivo da pasta).
+  A partir de agora, depois de qualquer alteração no código, é preciso
+  `docker compose up --build` de novo (só reiniciar o container não é
+  mais suficiente) — mas isso já era o que este README recomendava desde
+  o início, então o fluxo de uso não muda.
+- **Os backups (Módulo 17) passaram a viver num volume próprio**
+  (`sigha_backups`, montado em `/app/backups`), porque sem o bind mount
+  eles ficariam presos na camada gravável do container e sumiriam no
+  próximo `--build`. Backups antigos que já existiam na pasta
+  `backups/` do projeto continuam ali no disco (não foram apagados),
+  mas o container não os enxerga mais automaticamente — se precisar
+  restaurar um deles, copie o arquivo `.sql`/`.dump` para dentro do
+  volume novo antes (`docker compose exec web` mais um comando de cópia,
+  ou monte a pasta antiga manualmente por uma vez) e então use a tela de
+  Backup normalmente.
+
 ### Correção: layout quebrado em produção
 
 Se o menu lateral aparecia sobreposto ao conteúdo ou o tema claro/escuro
