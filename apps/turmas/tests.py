@@ -1,11 +1,12 @@
 """
 Testes do módulo Turmas: permissões de acesso e CRUD básico.
 """
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.usuarios.models import Usuario, Papel
-from .models import EtapaEnsino, Turma, Turno
+from .models import CursoTecnico, EtapaEnsino, Turma, Turno
 
 
 class TurmaPermissoesTests(TestCase):
@@ -104,3 +105,36 @@ class TurmaEtapaEnsinoTests(TestCase):
         self.assertEqual(resposta.status_code, 302)
         turma = Turma.objects.get(nome='2º Ano A')
         self.assertEqual(turma.etapa_ensino, EtapaEnsino.MEDIO)
+
+
+class TurmaCursoTecnicoTests(TestCase):
+    """
+    Cobre o Curso Técnico (Módulo 20): catálogo de cursos do SENAI e o
+    código do evento — a etapa de ensino "Curso Técnico" exige informar
+    qual curso, as demais etapas não usam esse campo.
+    """
+    def setUp(self):
+        self.senha = 'SenhaForte123'
+        self.admin = Usuario.objects.create_user(username='admin_tecnico', password=self.senha, papel=Papel.ADMINISTRADOR)
+        self.client.login(username='admin_tecnico', password=self.senha)
+
+    def test_curso_tecnico_sem_curso_e_invalido(self):
+        turma = Turma(nome='Eletrotécnica A', serie='1º Módulo', turno=Turno.NOTURNO, etapa_ensino=EtapaEnsino.TECNICO)
+        with self.assertRaises(ValidationError) as contexto:
+            turma.full_clean()
+        self.assertIn('curso_tecnico', contexto.exception.message_dict)
+
+    def test_criar_turma_de_curso_tecnico_pela_tela(self):
+        resposta = self.client.post(reverse('turmas:criar'), {
+            'nome': 'Eletrotécnica A', 'serie': '1º Módulo', 'etapa_ensino': EtapaEnsino.TECNICO,
+            'curso_tecnico': CursoTecnico.ELETROTECNICA, 'codigo_evento': '4321-2026',
+            'turno': Turno.NOTURNO, 'ativo': 'on',
+        })
+        self.assertEqual(resposta.status_code, 302, resposta.context['form'].errors if resposta.status_code == 200 else '')
+        turma = Turma.objects.get(nome='Eletrotécnica A')
+        self.assertEqual(turma.curso_tecnico, CursoTecnico.ELETROTECNICA)
+        self.assertEqual(turma.codigo_evento, '4321-2026')
+
+    def test_outras_etapas_nao_exigem_curso_tecnico(self):
+        turma = Turma(nome='6º Ano A', serie='6º Ano', turno=Turno.MATUTINO, etapa_ensino=EtapaEnsino.FUNDAMENTAL_2)
+        turma.full_clean()  # não deve levantar ValidationError

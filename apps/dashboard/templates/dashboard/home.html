@@ -2,7 +2,7 @@
 {% block titulo %}Dashboard{% endblock %}
 {% block conteudo %}
 <h1 class="h3 mb-1">Bem-vindo(a), {{ user.get_full_name|default:user.username }}</h1>
-<p class="text-muted mb-4">Visão geral do sistema — {{ user.get_papel_display }}</p>
+<p class="text-muted mb-4">{{ planejamento_hoje.data|date:"l, d \d\e F \d\e Y"|capfirst }} — {{ user.get_papel_display }}</p>
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4 col-xl-3">
@@ -62,35 +62,103 @@
 </div>
 
 <div class="row g-3">
-    <div class="col-12 col-lg-6">
-        <div class="card">
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
             <div class="card-body">
-                <h2 class="h6 mb-3">Usuários por papel</h2>
-                <canvas id="graficoPapeis" height="220"></canvas>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h6 mb-0"><i class="bi bi-calendar2-day me-2"></i>Planejamento de hoje</h2>
+                    {% if user.pode_gerenciar_academico %}
+                    <a href="{% url 'calendario:mes' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-calendar3 me-1"></i>Ver calendário
+                    </a>
+                    {% endif %}
+                </div>
+
+                {% if planejamento_hoje.eventos %}
+                <div class="mb-3">
+                    {% for evento in planejamento_hoje.eventos %}
+                    <span class="badge {% if evento.afeta_aulas %}text-bg-warning text-dark{% else %}text-bg-info text-dark{% endif %} me-1 mb-1">
+                        <i class="bi bi-flag-fill me-1"></i>{{ evento.get_tipo_display }}: {{ evento.titulo }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if not planejamento_hoje.e_dia_letivo %}
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-cup-hot me-1"></i>Hoje é fim de semana — sem aulas na grade. Bom descanso!
+                    </p>
+                {% elif planejamento_hoje.aulas %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Horário</th>
+                                    <th>Turma</th>
+                                    <th>Disciplina</th>
+                                    <th>Professor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for aula in planejamento_hoje.aulas %}
+                                <tr>
+                                    <td class="text-nowrap">{{ aula.horario.inicio|time:"H:i" }}</td>
+                                    <td>
+                                        {% if user.pode_gerenciar_academico %}
+                                            <a href="{% url 'grade:visual' aula.turma.pk %}?ano={{ aula.ano_letivo }}&semestre={{ aula.semestre }}">{{ aula.turma.nome }}</a>
+                                        {% else %}
+                                            {{ aula.turma.nome }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ aula.disciplina.sigla }}</td>
+                                    <td>{{ aula.professor.nome }} <span class="text-muted small">({{ aula.professor.matricula }})</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-info-circle me-1"></i>Nenhuma aula lançada na grade para hoje ainda.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 mb-3"><i class="bi bi-lightning-charge-fill me-2"></i>Acesso rápido</h2>
+                <div class="d-grid gap-2">
+                    {% if user.pode_gerenciar_academico %}
+                    <a href="{% url 'grade:lista' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-grid-3x3-gap-fill me-2"></i>Ver a grade de uma turma
+                    </a>
+                    <a href="{% url 'algoritmo:lista' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-magic me-2"></i>Gerar grade automaticamente
+                    </a>
+                    <a href="{% url 'substituicoes:lista' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-arrow-repeat me-2"></i>Registrar substituição de professor
+                    </a>
+                    <a href="{% url 'turmas:lista' %}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-people-fill me-2"></i>Cadastro de turmas
+                    </a>
+                    <a href="{% url 'professores:lista' %}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-person-workspace me-2"></i>Cadastro de professores
+                    </a>
+                    <a href="{% url 'relatorios:home' %}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-bar-chart-line-fill me-2"></i>Relatórios
+                    </a>
+                    {% else %}
+                    <p class="text-muted mb-0">
+                        Fale com a coordenação para acessar os cadastros e a grade de horários.
+                    </p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script>
-    const ctx = document.getElementById('graficoPapeis');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ grafico_papeis_labels|safe }},
-            datasets: [{
-                data: {{ grafico_papeis_valores|safe }},
-                backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#6610f2', '#dc3545'],
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
-</script>
 {% endblock %}

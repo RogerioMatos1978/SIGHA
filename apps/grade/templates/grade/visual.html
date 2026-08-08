@@ -73,7 +73,7 @@
                         {% if aula %}
                             <div class="small">
                                 <strong>{{ aula.disciplina.sigla }}</strong><br>
-                                <span class="text-muted">{{ aula.professor.nome }}</span><br>
+                                <span class="text-muted">{{ aula.professor.nome }} <span class="text-body-tertiary">({{ aula.professor.matricula }})</span></span><br>
                                 <span class="text-muted">{{ aula.ambiente.nome }}</span>
                             </div>
                             <div class="mt-1">

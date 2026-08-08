@@ -10,12 +10,24 @@ vazio", enquanto o correto aqui é "módulo ainda não implementado".
 Conforme cada módulo futuro for criado, basta trocar a função
 correspondente por uma consulta real ao seu modelo — o dashboard e o
 template não precisam mudar.
+
+Módulo 20: trocamos o gráfico "Usuários por papel" por um painel de
+"Planejamento de hoje" — mais útil no dia a dia do coordenador do que um
+gráfico decorativo, e vira o atalho principal do dashboard para quem quer
+saber rapidamente o que tem agendado hoje sem entrar em cada tela.
 """
 from django.apps import apps as django_apps
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from apps.usuarios.models import Usuario
+
+# Índice de `date.weekday()` (Python: segunda=0 ... domingo=6) para o
+# código de DiaSemana usado na Grade (Módulo 10) — mesma tabela usada em
+# apps/substituicoes/models.py para validar a data de uma substituição.
+_DIA_SEMANA_POR_WEEKDAY = {
+    0: 'SEGUNDA', 1: 'TERCA', 2: 'QUARTA', 3: 'QUINTA', 4: 'SEXTA',
+}
 
 
 def _contar_modelo(app_label, nome_modelo):
@@ -101,3 +113,48 @@ def obter_cartoes_resumo():
         {'chave': 'conflitos', 'titulo': 'Conflitos encontrados', 'icone': 'bi-exclamation-triangle-fill',
          'valor': indicadores_grade['conflitos']},
     ]
+
+
+def obter_planejamento_do_dia():
+    """
+    Painel "hoje" do dashboard (Módulo 20): aulas da grade e eventos do
+    calendário que caem na data de hoje, para o coordenador ver de
+    cara o que está agendado sem precisar abrir a grade de cada turma.
+
+    Segue o mesmo padrão de "ano letivo + 1º semestre por padrão" usado
+    em todo o resto do sistema (Grade, Algoritmo automático) — não tenta
+    adivinhar o semestre atual a partir do mês, porque essa divisão é
+    escolhida por quem lança a grade, não calculada.
+    """
+    hoje = timezone.localdate()
+    dia_semana_hoje = _DIA_SEMANA_POR_WEEKDAY.get(hoje.weekday())
+
+    resultado = {
+        'data': hoje, 'dia_semana_hoje': dia_semana_hoje, 'e_dia_letivo': dia_semana_hoje is not None,
+        'aulas': [], 'eventos': [],
+    }
+
+    try:
+        GradeAula = django_apps.get_model('grade', 'GradeAula')
+        Evento = django_apps.get_model('calendario', 'Evento')
+    except LookupError:
+        return resultado
+
+    ano_atual = hoje.year
+    if dia_semana_hoje:
+        resultado['aulas'] = list(
+            GradeAula.objects.filter(
+                dia_semana=dia_semana_hoje, ano_letivo=ano_atual, semestre='1',
+            )
+            .select_related('turma', 'disciplina', 'professor', 'horario')
+            .order_by('horario__ordem', 'turma__nome')
+        )
+
+    # Eventos que caem hoje: de um dia só (data_inicio == hoje) ou de
+    # vários dias em que hoje está dentro do intervalo [data_inicio, data_fim].
+    resultado['eventos'] = list(
+        Evento.objects.filter(ano_letivo=ano_atual).filter(
+            Q(data_inicio=hoje) | Q(data_inicio__lte=hoje, data_fim__gte=hoje)
+        ).order_by('tipo')
+    )
+    return resultado

@@ -71,7 +71,7 @@ class TurmaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = _filtrar_por_booleano(super().get_queryset(), self.request, 'ativo')
-        return _filtrar_por_igualdade(qs, self.request, ['turno', 'etapa_ensino'])
+        return _filtrar_por_igualdade(qs, self.request, ['turno', 'etapa_ensino', 'curso_tecnico'])
 
 
 class AmbienteViewSet(viewsets.ModelViewSet):

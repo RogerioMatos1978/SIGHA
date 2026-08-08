@@ -29,6 +29,20 @@
         {{ form.turno }}
         {% for erro in form.turno.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
     </div>
+
+    <div class="col-md-6" id="campo-curso-tecnico">
+        <label class="form-label">Curso técnico</label>
+        {{ form.curso_tecnico }}
+        <div class="form-text">Só se aplica quando a etapa de ensino é "Curso Técnico".</div>
+        {% for erro in form.curso_tecnico.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-6" id="campo-codigo-evento">
+        <label class="form-label">Código do evento (SENAI)</label>
+        {{ form.codigo_evento }}
+        <div class="form-text">Código interno que o SENAI atribui a esta turma no sistema deles (opcional).</div>
+        {% for erro in form.codigo_evento.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+
     <div class="col-md-6 d-flex align-items-end">
         <div class="form-check">
             {{ form.ativo }}
@@ -41,4 +55,25 @@
         <a href="{% url 'turmas:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
     </div>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Só mostra Curso técnico / Código do evento quando a etapa é "Curso Técnico"
+    // (Módulo 20) — os outros níveis de ensino não usam esses dois campos.
+    (function () {
+        const selectEtapa = document.getElementById('{{ form.etapa_ensino.id_for_label }}');
+        const campoCurso = document.getElementById('campo-curso-tecnico');
+        const campoEvento = document.getElementById('campo-codigo-evento');
+        function atualizar() {
+            const ehTecnico = selectEtapa.value === 'TECNICO';
+            campoCurso.style.display = ehTecnico ? '' : 'none';
+            campoEvento.style.display = ehTecnico ? '' : 'none';
+        }
+        if (selectEtapa) {
+            selectEtapa.addEventListener('change', atualizar);
+            atualizar();
+        }
+    })();
+</script>
 {% endblock %}

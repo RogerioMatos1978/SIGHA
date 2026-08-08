@@ -9,6 +9,14 @@ ensino-fundamental-guia-completo e fontes do MEC): Ensino Fundamental I
 — Anos Iniciais, 1º ao 5º ano —, Ensino Fundamental II — Anos Finais, 6º
 ao 9º ano —, e Ensino Médio — 1º ao 3º ano.
 
+Também inclui uma turma de Curso Técnico (Módulo 20), parceria com o
+SENAI: o catálogo de cursos (`CursoTecnico`) e a carga horária de 1.200h
+vêm do site do SENAI Goiás (conteudo.senaigoias.com.br/cursos-tecnicos)
+e da lista da SEDUC-GO (goias.gov.br/educacao/lista-de-cursos-etp-com-o-
+senai) — a turma de exemplo é de Técnico em Eletrotécnica, com
+`codigo_evento` de exemplo (o código real é atribuído pelo sistema do
+SENAI, não por este comando).
+
 O currículo de cada turma (quais disciplinas, quantas aulas semanais de
 cada uma) não foi inventado:
 
@@ -16,6 +24,10 @@ cada uma) não foi inventado:
   Colégio Fito (fito.edu.br/arquivos/Ensino-Fundamental.pdf).
 - Ensino Médio: "Estrutura Curricular para o Ensino Médio" da Faculdade
   Itop (faculdadeitop.edu.br, grade_curricular_1.2.3_ano_diurno.pdf).
+- Curso Técnico: disciplinas típicas de um técnico em Eletrotécnica
+  (instalações, comandos e máquinas elétricas, desenho técnico,
+  segurança do trabalho), com um professor especialista por disciplina —
+  o mesmo modelo de staffing do Ensino Médio.
 
 O horário das aulas (7 aulas de 50 minutos por dia, a partir das 07:00,
 com intervalo depois da 3ª) segue o padrão de aula de 50 minutos adotado
@@ -66,7 +78,7 @@ from apps.disponibilidade.models import DiaSemana, DisponibilidadeProfessor
 from apps.grade.models import Atribuicao, GradeAula, Semestre
 from apps.horarios.models import Horario
 from apps.professores.models import Professor
-from apps.turmas.models import EtapaEnsino, Turma, Turno
+from apps.turmas.models import CursoTecnico, EtapaEnsino, Turma, Turno
 
 PREFIXO_TURMA = '[Exemplo] '
 PREFIXO_AMBIENTE = '[Exemplo] '
@@ -154,18 +166,35 @@ TURMAS_EXEMPLO = [
             ('Redação', 'EXREDM1', 1, None, 'Redação (Médio 1º Ano A)'),
         ],
     },
+    {
+        'nome': 'Eletrotécnica A', 'serie': '1º Módulo', 'turno': Turno.NOTURNO,
+        'etapa_ensino': EtapaEnsino.TECNICO, 'curso_tecnico': CursoTecnico.ELETROTECNICA,
+        'codigo_evento': '5567-2026',
+        'disciplinas': [
+            ('Instalações Elétricas Prediais', 'EXIEP', 6, TipoAmbiente.LABORATORIO, 'Instalações Elétricas (Técnico Eletrotécnica A)'),
+            ('Comandos Elétricos', 'EXCOMEL', 5, TipoAmbiente.LABORATORIO, 'Comandos Elétricos (Técnico Eletrotécnica A)'),
+            ('Máquinas Elétricas', 'EXMAQEL', 4, TipoAmbiente.LABORATORIO, 'Máquinas Elétricas (Técnico Eletrotécnica A)'),
+            ('Desenho Técnico', 'EXDESTEC', 3, None, 'Desenho Técnico (Técnico Eletrotécnica A)'),
+            ('Segurança do Trabalho', 'EXSEGTRA', 2, None, 'Segurança do Trabalho (Técnico Eletrotécnica A)'),
+            ('Matemática Aplicada', 'EXMATAPL', 4, None, 'Matemática Aplicada (Técnico Eletrotécnica A)'),
+            ('Inglês Técnico', 'EXINGTEC', 2, None, 'Inglês Técnico (Técnico Eletrotécnica A)'),
+        ],
+    },
 ]
 
 AMBIENTES = [
-    # Capacidade 4 nos três: com 4 turmas no exemplo (uma de cada etapa,
-    # mais uma extra no Fundamental II), isso garante que o algoritmo
-    # automático (Módulo 11) sempre encontra ambiente livre, mesmo se
-    # várias turmas caírem no mesmo horário para o mesmo tipo de aula —
-    # a escolha de horário e a escolha de ambiente são duas etapas
-    # separadas do solver (ele não tenta "casar" as duas de propósito).
-    ('Salas de Aula', TipoAmbiente.SALA, 4),
-    ('Laboratório de Informática', TipoAmbiente.LABORATORIO, 4),
-    ('Quadra Poliesportiva', TipoAmbiente.QUADRA, 4),
+    # Capacidade 5: com 5 turmas no exemplo (uma de cada etapa do Fund./
+    # Médio, mais uma extra no Fundamental II, mais a turma de Curso
+    # Técnico), isso garante que o algoritmo automático (Módulo 11)
+    # sempre encontra ambiente livre, mesmo se várias turmas caírem no
+    # mesmo horário para o mesmo tipo de aula — a escolha de horário e a
+    # escolha de ambiente são duas etapas separadas do solver (ele não
+    # tenta "casar" as duas de propósito). O Curso Técnico reaproveita o
+    # mesmo "Laboratório" genérico (Módulo 7 só tem um tipo LABORATORIO,
+    # sem distinguir informática de elétrica).
+    ('Salas de Aula', TipoAmbiente.SALA, 5),
+    ('Laboratório de Informática', TipoAmbiente.LABORATORIO, 5),
+    ('Quadra Poliesportiva', TipoAmbiente.QUADRA, 5),
 ]
 
 # (chave_do_professor, dia_semana, posição do horário de aula que fica
@@ -313,7 +342,11 @@ class Command(BaseCommand):
         for turma_spec in TURMAS_EXEMPLO:
             turma, _ = Turma.objects.get_or_create(
                 nome=f"{PREFIXO_TURMA}{turma_spec['nome']}", turno=turma_spec['turno'],
-                defaults={'serie': turma_spec['serie'], 'etapa_ensino': turma_spec['etapa_ensino']},
+                defaults={
+                    'serie': turma_spec['serie'], 'etapa_ensino': turma_spec['etapa_ensino'],
+                    'curso_tecnico': turma_spec.get('curso_tecnico', ''),
+                    'codigo_evento': turma_spec.get('codigo_evento', ''),
+                },
             )
             turmas[turma_spec['nome']] = turma
         return turmas

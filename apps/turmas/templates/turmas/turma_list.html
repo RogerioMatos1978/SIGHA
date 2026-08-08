@@ -45,7 +45,15 @@
             <tr>
                 <td>{{ t.nome }}</td>
                 <td>{{ t.serie }}</td>
-                <td><span class="badge text-bg-info text-dark">{{ t.get_etapa_ensino_display }}</span></td>
+                <td>
+                    <span class="badge text-bg-info text-dark">{{ t.get_etapa_ensino_display }}</span>
+                    {% if t.curso_tecnico %}
+                        <div class="small text-muted mt-1">
+                            {{ t.get_curso_tecnico_display }}
+                            {% if t.codigo_evento %}— evento {{ t.codigo_evento }}{% endif %}
+                        </div>
+                    {% endif %}
+                </td>
                 <td><span class="badge text-bg-secondary">{{ t.get_turno_display }}</span></td>
                 <td>
                     {% if t.ativo %}

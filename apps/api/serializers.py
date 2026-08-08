@@ -69,14 +69,20 @@ class DisciplinaSerializer(serializers.ModelSerializer):
         return valor.strip().upper()
 
 
-class TurmaSerializer(serializers.ModelSerializer):
+class TurmaSerializer(FullCleanMixin, serializers.ModelSerializer):
+    """
+    `FullCleanMixin` reaproveita `Turma.clean()` (Módulo 20): exige
+    `curso_tecnico` quando `etapa_ensino` é "Curso Técnico".
+    """
     turno_display = serializers.CharField(source='get_turno_display', read_only=True)
     etapa_ensino_display = serializers.CharField(source='get_etapa_ensino_display', read_only=True)
+    curso_tecnico_display = serializers.CharField(source='get_curso_tecnico_display', read_only=True)
 
     class Meta:
         model = Turma
         fields = [
             'id', 'nome', 'serie', 'etapa_ensino', 'etapa_ensino_display',
+            'curso_tecnico', 'curso_tecnico_display', 'codigo_evento',
             'turno', 'turno_display', 'ativo', 'criado_em', 'atualizado_em',
         ]
         read_only_fields = ['criado_em', 'atualizado_em']

@@ -88,6 +88,47 @@ class ServicesTests(TestCase):
         self.assertEqual(por_chave['carga_horaria'], 1)
 
 
+    def test_planejamento_do_dia_marca_fim_de_semana(self):
+        """Sábado/domingo não é dia letivo — o painel avisa em vez de mostrar uma lista vazia."""
+        import datetime
+        from unittest.mock import patch
+
+        sabado = datetime.date(2026, 8, 8)  # sábado de verdade (ver Módulo 19)
+        with patch('apps.dashboard.services.timezone.localdate', return_value=sabado):
+            dados = services.obter_planejamento_do_dia()
+        self.assertFalse(dados['e_dia_letivo'])
+        self.assertEqual(dados['aulas'], [])
+
+    def test_planejamento_do_dia_lista_aulas_do_dia(self):
+        import datetime
+        from unittest.mock import patch
+
+        from apps.ambientes.models import Ambiente, TipoAmbiente
+        from apps.disciplinas.models import Disciplina
+        from apps.disponibilidade.models import DiaSemana
+        from apps.grade.models import GradeAula, Semestre
+        from apps.horarios.models import Horario
+        from apps.professores.models import Professor
+        from apps.turmas.models import Turma, Turno
+
+        segunda = datetime.date(2026, 8, 10)  # segunda-feira de verdade (ver Módulo 19)
+        turma = Turma.objects.create(nome='Turma Hoje', serie='1º Ano', turno=Turno.MATUTINO)
+        disciplina = Disciplina.objects.create(nome='Física', sigla='FISDASH', quantidade_aulas_semana=2)
+        professor = Professor.objects.create(nome='Marcos', matricula='PDASH1', carga_horaria=20)
+        ambiente = Ambiente.objects.create(nome='Sala Dashboard Hoje', tipo=TipoAmbiente.SALA, capacidade=1)
+        horario = Horario.objects.create(ordem=1, inicio=datetime.time(7, 0), fim=datetime.time(7, 50))
+        GradeAula.objects.create(
+            turma=turma, disciplina=disciplina, professor=professor, ambiente=ambiente,
+            dia_semana=DiaSemana.SEGUNDA, horario=horario, ano_letivo=2026, semestre=Semestre.PRIMEIRO,
+        )
+
+        with patch('apps.dashboard.services.timezone.localdate', return_value=segunda):
+            dados = services.obter_planejamento_do_dia()
+        self.assertTrue(dados['e_dia_letivo'])
+        self.assertEqual(len(dados['aulas']), 1)
+        self.assertEqual(dados['aulas'][0].turma, turma)
+
+
 class DashboardViewTests(TestCase):
     def setUp(self):
         self.senha = 'SenhaForte123'
@@ -102,3 +143,9 @@ class DashboardViewTests(TestCase):
         resposta = self.client.get(reverse('home'))
         self.assertEqual(resposta.status_code, 200)
         self.assertContains(resposta, 'Usuários cadastrados')
+
+    def test_dashboard_mostra_planejamento_do_dia_em_vez_de_grafico(self):
+        self.client.login(username='consulta1', password=self.senha)
+        resposta = self.client.get(reverse('home'))
+        self.assertContains(resposta, 'Planejamento de hoje')
+        self.assertNotContains(resposta, 'graficoPapeis')

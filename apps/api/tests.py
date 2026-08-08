@@ -112,6 +112,36 @@ class TurmaApiTests(ApiCrudBaseTestCase):
         self.assertIn('3º Ano API', nomes)
         self.assertNotIn('9º Ano API', nomes)
 
+    def test_criar_turma_tecnica_com_curso_e_codigo_evento(self):
+        resposta = self.client.post(reverse('api:turma-list'), {
+            'nome': 'Mecatrônica A API', 'serie': '1º Módulo', 'turno': Turno.NOTURNO,
+            'etapa_ensino': 'TECNICO', 'curso_tecnico': 'MECATRONICA', 'codigo_evento': '9988-2026',
+        })
+        self.assertEqual(resposta.status_code, 201, resposta.content)
+        self.assertEqual(resposta.json()['curso_tecnico'], 'MECATRONICA')
+        self.assertEqual(resposta.json()['codigo_evento'], '9988-2026')
+
+    def test_curso_tecnico_sem_curso_retorna_400(self):
+        resposta = self.client.post(reverse('api:turma-list'), {
+            'nome': 'Sem Curso API', 'serie': '1º Módulo', 'turno': Turno.NOTURNO, 'etapa_ensino': 'TECNICO',
+        })
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn('curso_tecnico', resposta.json())
+
+    def test_filtro_por_curso_tecnico(self):
+        Turma.objects.create(
+            nome='Eletrotécnica API', serie='1º Módulo', turno=Turno.NOTURNO,
+            etapa_ensino='TECNICO', curso_tecnico='ELETROTECNICA',
+        )
+        Turma.objects.create(
+            nome='Mecânica API', serie='1º Módulo', turno=Turno.NOTURNO,
+            etapa_ensino='TECNICO', curso_tecnico='MECANICA',
+        )
+        resposta = self.client.get(reverse('api:turma-list'), {'curso_tecnico': 'ELETROTECNICA'})
+        nomes = [item['nome'] for item in resposta.json()]
+        self.assertIn('Eletrotécnica API', nomes)
+        self.assertNotIn('Mecânica API', nomes)
+
 
 class HorarioApiTests(ApiCrudBaseTestCase):
     def test_fim_antes_do_inicio_retorna_400(self):

@@ -5,9 +5,11 @@ e testados** — Usuários, Login, Dashboard, Professores, Disciplinas,
 Turmas, Ambientes, Horários, Disponibilidade, Grade, Algoritmo automático
 (OR-Tools), Calendário, Relatórios, Exportações, API, Auditoria, Backup e
 Testes (a suíte de integração de ponta a ponta + cobertura + CI descritas
-mais abaixo) — mais um **Módulo 19** de melhorias pedidas depois: etapa
-de ensino em Turma, vínculo Professor↔Turma, e Substituições. O sistema
-está funcional de ponta a ponta.
+mais abaixo) — mais dois módulos de melhorias pedidas depois: o
+**Módulo 19** (etapa de ensino em Turma, vínculo Professor↔Turma e
+Substituições) e o **Módulo 20** (Cursos Técnicos do SENAI, matrícula do
+professor na Grade e um dashboard mais direto ao ponto). O sistema está
+funcional de ponta a ponta.
 
 ## O que já funciona
 
@@ -18,11 +20,16 @@ está funcional de ponta a ponta.
 - Cadastro de usuários (listar, criar, editar, ativar/desativar) — restrito a
   Administrador e Coordenador.
 - Dashboard (`apps/dashboard`) com indicadores de usuários (total, ativos,
-  inativos, gráfico por papel) e cartões para os indicadores acadêmicos —
-  agora que o módulo de Grade existe, todos os cartões mostram números
-  reais: professores, disciplinas, turmas, ambientes, aulas já encaixadas
-  na grade no ano atual, horários ainda livres e conflitos encontrados
-  (sempre 0, porque o próprio sistema nunca permite salvar um conflito).
+  inativos) e cartões para os indicadores acadêmicos — professores,
+  disciplinas, turmas, ambientes, aulas já encaixadas na grade no ano
+  atual, horários ainda livres e conflitos encontrados (sempre 0, porque
+  o próprio sistema nunca permite salvar um conflito). No lugar do
+  antigo gráfico de "usuários por papel" (Módulo 20), um painel de
+  **planejamento do dia**: as aulas de hoje (turma, disciplina,
+  professor) e os eventos do calendário que caem hoje, com atalhos
+  diretos para a Grade, para gerar automaticamente e para registrar uma
+  substituição — o dashboard vira o ponto de partida do dia, não só uma
+  tela de números.
 - Cadastro de professores (`apps/professores`): nome, matrícula, e-mail,
   telefone, carga horária semanal, ativo/inativo, e o **vínculo com
   turmas** (Módulo 19): em quais etapas de ensino (Fundamental I,
@@ -36,11 +43,18 @@ está funcional de ponta a ponta.
 - Cadastro de disciplinas (`apps/disciplinas`): nome, sigla (normalizada
   em maiúscula automaticamente), quantidade de aulas por semana, ativo/inativo.
 - Cadastro de turmas (`apps/turmas`): nome, série, etapa de ensino
-  (Fundamental I, Fundamental II ou Médio — a divisão oficial do
-  MEC/LDB: Fundamental I do 1º ao 5º ano, Fundamental II do 6º ao 9º,
-  Médio do 1º ao 3º), turno (Matutino, Vespertino, Noturno, Integral),
-  ativo/inativo — mesma turma pode existir em turnos diferentes, mas não
-  duplicada no mesmo turno. A lista tem filtro por etapa de ensino.
+  (Fundamental I, Fundamental II, Médio ou **Curso Técnico** — a divisão
+  oficial do MEC/LDB, mais a etapa de Curso Técnico do Módulo 20),
+  turno (Matutino, Vespertino, Noturno, Integral), ativo/inativo — mesma
+  turma pode existir em turnos diferentes, mas não duplicada no mesmo
+  turno. A lista tem filtro por etapa de ensino. Quando a etapa é
+  "Curso Técnico", a turma também guarda **qual curso** (catálogo
+  nacional do SENAI — Eletrotécnica, Mecatrônica, Desenvolvimento de
+  Sistemas, Automação Industrial, etc., pesquisado em
+  [conteudo.senaigoias.com.br/cursos-tecnicos](https://conteudo.senaigoias.com.br/cursos-tecnicos)
+  e na [lista de cursos EPT da SEDUC-GO](https://goias.gov.br/educacao/lista-de-cursos-etp-com-o-senai/))
+  e o **código do evento** — o código interno que o SENAI atribui a cada
+  turma/oferta específica de um curso no sistema deles (SGE).
 - Cadastro de ambientes (`apps/ambientes`): nome (único), tipo (Sala,
   Biblioteca, Laboratório, Quadra, Auditório, Maker), capacidade de uso
   simultâneo, ativo/inativo — essa capacidade é o dado que o futuro módulo
@@ -59,8 +73,10 @@ está funcional de ponta a ponta.
   Todos restritos a Administrador, Coordenador e Secretaria.
 - Grade (`apps/grade`): a tela principal do sistema — para cada turma, uma
   visualização estilo Excel (dias nas colunas, horários nas linhas) onde
-  cada célula é uma aula (disciplina, professor, ambiente). Controlada por
-  ano letivo e semestre. Nenhuma aula conflitante consegue ser salva,
+  cada célula é uma aula (disciplina, professor — com a matrícula ao lado
+  do nome, para identificar rapidinho qual professor é, Módulo 20 —,
+  ambiente). Controlada por ano letivo e semestre. Nenhuma aula
+  conflitante consegue ser salva,
   porque o próprio modelo valida antes de gravar: turma não pode ter duas
   aulas ao mesmo tempo, professor não pode estar em duas turmas ao mesmo
   tempo, o ambiente respeita sua capacidade de uso simultâneo cadastrada
@@ -164,7 +180,7 @@ está funcional de ponta a ponta.
   telas (quase 20, um item por módulo) ficava comprida demais para
   navegar de relance.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (223 testes: 222 nas suítes de cada módulo mais o
+- Testes automatizados (232 testes: 231 nas suítes de cada módulo mais o
   teste de integração de ponta a ponta) cobrindo login, permissões,
   dashboard, professores, disciplinas, turmas, ambientes, horários,
   disponibilidade, as regras de conflito da grade, o algoritmo automático
@@ -230,7 +246,8 @@ python manage.py carregar_dados_exemplo --limpar   # remove
 Cria uma grade de aulas completa para testar o sistema sem precisar
 cadastrar tudo manualmente — com turmas nas **três etapas da Educação
 Básica**, na divisão oficial do MEC/LDB ([saibatecnologias.com.br, "Quais
-são as Séries do Ensino Fundamental?"](https://sabertecnologias.com.br/conteudo/quais-sao-as-series-do-ensino-fundamental-guia-completo)):
+são as Séries do Ensino Fundamental?"](https://sabertecnologias.com.br/conteudo/quais-sao-as-series-do-ensino-fundamental-guia-completo)),
+mais uma turma de **Curso Técnico** (Módulo 20):
 
 - **Fundamental I** (Anos Iniciais, 1º ao 5º ano) — turma **3º Ano A**,
   com uma professora regente dando a maior parte das aulas (Português,
@@ -245,27 +262,37 @@ são as Séries do Ensino Fundamental?"](https://sabertecnologias.com.br/conteud
   especialista por disciplina: Língua Portuguesa, Matemática, Biologia,
   Química, Física, História, Geografia, Filosofia, Sociologia, Arte,
   Educação Física, Inglês, Espanhol e Redação.
+- **Curso Técnico** — turma **Eletrotécnica A** (Técnico em
+  Eletrotécnica, código do evento de exemplo `5567-2026`), com um
+  professor especialista por disciplina técnica: Instalações Elétricas
+  Prediais, Comandos Elétricos, Máquinas Elétricas, Desenho Técnico,
+  Segurança do Trabalho, Matemática Aplicada e Inglês Técnico.
 
 O currículo de cada etapa (quantas aulas semanais de cada disciplina) foi
 tirado de grades curriculares reais: Fundamental I e II do [Colégio
 Fito](https://www.fito.edu.br/arquivos/Ensino-Fundamental.pdf); Ensino
-Médio da [Faculdade Itop](https://www.faculdadeitop.edu.br/files/download/20210116160027_grade_curricular_1.2.3_ano_diurno.pdf).
+Médio da [Faculdade Itop](https://www.faculdadeitop.edu.br/files/download/20210116160027_grade_curricular_1.2.3_ano_diurno.pdf);
+Curso Técnico com disciplinas típicas de um técnico em Eletrotécnica do
+[SENAI Goiás](https://conteudo.senaigoias.com.br/cursos-tecnicos) (o
+catálogo completo de cursos técnicos do SENAI, com carga horária de
+1.200h cada, está listado também na [lista de cursos EPT da
+SEDUC-GO](https://goias.gov.br/educacao/lista-de-cursos-etp-com-o-senai/)).
 
-- 31 professores no total, com carga horária compatível com o que cada
+- 38 professores no total, com carga horária compatível com o que cada
   um dá (mais uma folga, como qualquer contrato real).
-- 3 ambientes (salas de aula, laboratório de informática, quadra) e 8
-  horários (7 aulas de 50 minutos a partir das 07:00 + intervalo — o
-  padrão de aula de 50 minutos adotado em 2026 pela rede estadual de SP).
-  A 7ª aula é a "folga" da semana: com turmas de currículo cheio (até 30
-  aulas semanais), usar exatamente 6 aulas/dia deixaria o algoritmo
-  automático sem margem para encaixar tudo sem conflito de professor.
+- 3 ambientes (salas de aula, laboratório, quadra) e 8 horários (7 aulas
+  de 50 minutos a partir das 07:00 + intervalo — o padrão de aula de 50
+  minutos adotado em 2026 pela rede estadual de SP). A 7ª aula é a
+  "folga" da semana: com turmas de currículo cheio (até 30 aulas
+  semanais), usar exatamente 6 aulas/dia deixaria o algoritmo automático
+  sem margem para encaixar tudo sem conflito de professor.
 - Algumas disponibilidades de professor marcadas como indisponível (ex.:
   professor de Educação Física não dá a 1ª aula de segunda), para a tela
   de Disponibilidade não ficar "tudo disponível sempre".
 - 4 eventos no calendário (2 feriados nacionais, 1 reunião pedagógica, 1
   prova).
-- A grade das quatro turmas já **gerada automaticamente** pelo Módulo 11
-  (OR-Tools) — 115 aulas (30 + 30 + 30 + 25) encaixadas sem nenhum
+- A grade das cinco turmas já **gerada automaticamente** pelo Módulo 11
+  (OR-Tools) — 141 aulas (30 + 30 + 30 + 25 + 26) encaixadas sem nenhum
   conflito, prontas para ver na Grade, nos Relatórios, exportar ou
   consultar pela API.
 

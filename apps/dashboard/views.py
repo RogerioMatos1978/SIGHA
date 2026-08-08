@@ -1,9 +1,11 @@
 """
 View do Dashboard (Módulo 3). Uma única view simples: toda a complexidade
 de agregação de dados fica em services.py.
-"""
-import json
 
+Módulo 20: o dashboard trocou o gráfico "Usuários por papel" por um
+painel de planejamento do dia (aulas e eventos de hoje) — mais amigável
+e mais útil no dia a dia do que um gráfico decorativo.
+"""
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
@@ -15,13 +17,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
-        indicadores_usuarios = services.obter_indicadores_usuarios()
-        contexto['indicadores_usuarios'] = indicadores_usuarios
+        contexto['indicadores_usuarios'] = services.obter_indicadores_usuarios()
         contexto['cartoes'] = services.obter_cartoes_resumo()
-        contexto['grafico_papeis_labels'] = json.dumps(
-            [item['papel'] for item in indicadores_usuarios['por_papel']]
-        )
-        contexto['grafico_papeis_valores'] = json.dumps(
-            [item['quantidade'] for item in indicadores_usuarios['por_papel']]
-        )
+        contexto['planejamento_hoje'] = services.obter_planejamento_do_dia()
         return contexto
