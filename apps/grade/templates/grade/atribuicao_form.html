@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
-{% block titulo %}Nova atribuição{% endblock %}
+{% block titulo %}{% if editando %}Editar atribuição{% else %}Nova atribuição{% endif %}{% endblock %}
 {% block conteudo %}
-<h1 class="h3 mb-4">Nova atribuição — {{ turma.nome }}</h1>
+<h1 class="h3 mb-4">{% if editando %}Editar atribuição{% else %}Nova atribuição{% endif %} — {{ turma.nome }}</h1>
+{% if editando %}
+<p class="text-muted small">
+    Trocar o professor aqui é uma substituição <strong>permanente</strong> (vale a partir de agora,
+    para o restante do ano). Para cobrir a falta de um professor num único dia, use
+    <a href="{% url 'substituicoes:lista' %}">Substituições</a> na própria aula da grade.
+</p>
+{% endif %}
 
 {% if form.non_field_errors %}
 <div class="alert alert-danger">

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block titulo %}Registrar substituição{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-2">Registrar substituição</h1>
+<p class="text-muted">
+    Aula: <strong>{{ aula.disciplina.nome }}</strong> — {{ aula.turma.nome }} —
+    {{ aula.get_dia_semana_display }}, {{ aula.horario.inicio|time:"H:i" }}–{{ aula.horario.fim|time:"H:i" }} —
+    titular: <strong>{{ aula.professor.nome }}</strong>.
+</p>
+<p class="text-muted small">
+    Isto vale só para UMA data (falta pontual do titular) — a atribuição original continua igual nos
+    outros dias. Para trocar o professor da disciplina permanentemente, edite a
+    <a href="{% url 'grade:atribuicoes' aula.turma.pk %}">atribuição da turma</a>.
+</p>
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger">
+    {% for erro in form.non_field_errors %}<div>{{ erro }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="row g-3" style="max-width: 500px;">
+    {% csrf_token %}
+    <div class="col-12">
+        <label class="form-label">Data</label>
+        {{ form.data }}
+        {% if form.data.errors %}<div class="text-danger small">{{ form.data.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-12">
+        <label class="form-label">Professor substituto</label>
+        {{ form.professor_substituto }}
+        {% if form.professor_substituto.errors %}<div class="text-danger small">{{ form.professor_substituto.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-12">
+        <div class="form-check">
+            {{ form.aula_cancelada }}
+            <label class="form-check-label" for="{{ form.aula_cancelada.id_for_label }}">
+                Aula cancelada (sem professor substituto disponível)
+            </label>
+        </div>
+    </div>
+    <div class="col-12">
+        <label class="form-label">Motivo</label>
+        {{ form.motivo }}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar</button>
+        <a href="{% url 'grade:visual' aula.turma.pk %}?ano={{ aula.ano_letivo }}&semestre={{ aula.semestre }}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

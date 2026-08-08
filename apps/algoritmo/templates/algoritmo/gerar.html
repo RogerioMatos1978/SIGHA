@@ -13,6 +13,19 @@
     turmas — sem sobrescrever aulas já lançadas manualmente, a não ser que você marque a opção abaixo.
 </p>
 
+{% if avisos_vinculo %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    <strong>{{ avisos_vinculo|length }} atribuição(ões) usa(m) professor fora da etapa/turma autorizada</strong>
+    (Módulo 19) — o algoritmo vai gerar a grade normalmente mesmo assim, é só um aviso:
+    <ul class="mb-0 mt-1">
+        {% for atribuicao in avisos_vinculo %}
+        <li>{{ atribuicao.disciplina.nome }} — {{ atribuicao.professor.nome }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 {% if not resumo %}
 <div class="alert alert-warning">
     Nenhuma atribuição de professor cadastrada para esta turma ainda. Cadastre em

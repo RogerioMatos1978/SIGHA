@@ -27,6 +27,20 @@ from .models import Atribuicao, GradeAula, Semestre
 from .permissions import GerenciaAcademicoMixin
 
 
+def _avisar_se_fora_do_vinculo(request, professor, turma):
+    """
+    Módulo 19: se o professor não está autorizado (etapa/exceções) para
+    esta turma, mostra um aviso — não bloqueia o salvamento, só chama
+    atenção do coordenador para o caso excepcional.
+    """
+    if not professor.pode_lecionar_em(turma):
+        messages.warning(
+            request,
+            f'Atenção: {professor.nome} não está vinculado à etapa/turma de "{turma.nome}" '
+            '(veja o cadastro do professor). A aula foi salva mesmo assim.',
+        )
+
+
 def _periodo_atual(request):
     """Lê ano letivo e semestre da querystring, com valores padrão sensatos."""
     try:
@@ -115,6 +129,7 @@ class GradeAulaCreateView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
                 return render(request, self.template_name, self._contexto(form))
             aula.save()
             messages.success(request, 'Aula adicionada à grade com sucesso.')
+            _avisar_se_fora_do_vinculo(request, aula.professor, aula.turma)
             return redirect(self._url_visual())
         return render(request, self.template_name, self._contexto(form))
 
@@ -159,6 +174,7 @@ class GradeAulaUpdateView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
                 return render(request, self.template_name, self._contexto(form))
             aula.save()
             messages.success(request, 'Aula atualizada com sucesso.')
+            _avisar_se_fora_do_vinculo(request, aula.professor, aula.turma)
             return redirect(
                 f"{reverse('grade:visual', args=[aula.turma.pk])}"
                 f"?ano={aula.ano_letivo}&semestre={aula.semestre}"
@@ -187,7 +203,10 @@ class AtribuicaoListView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
     def get(self, request, turma_id):
         turma = get_object_or_404(Turma, pk=turma_id)
         atribuicoes = Atribuicao.objects.filter(turma=turma).select_related('disciplina', 'professor')
-        return render(request, self.template_name, {'turma': turma, 'atribuicoes': atribuicoes})
+        fora_do_vinculo = {a.pk for a in services.atribuicoes_fora_do_vinculo(turma)}
+        return render(request, self.template_name, {
+            'turma': turma, 'atribuicoes': atribuicoes, 'fora_do_vinculo': fora_do_vinculo,
+        })
 
 
 class AtribuicaoCreateView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
@@ -212,8 +231,48 @@ class AtribuicaoCreateView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
                 return render(request, self.template_name, {'form': form, 'turma': self.turma})
             atribuicao.save()
             messages.success(request, 'Atribuição criada com sucesso.')
+            _avisar_se_fora_do_vinculo(request, atribuicao.professor, self.turma)
             return redirect('grade:atribuicoes', self.turma.pk)
         return render(request, self.template_name, {'form': form, 'turma': self.turma})
+
+
+class AtribuicaoUpdateView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
+    """
+    Edita a disciplina/professor de uma atribuição já existente — é a
+    "substituição permanente" do Módulo 19 (ex.: professor saiu de
+    licença e outro assume a disciplina dali para frente). Para faltas
+    pontuais de um dia, veja o app Substituições.
+    """
+    template_name = 'grade/atribuicao_form.html'
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.atribuicao = get_object_or_404(Atribuicao, pk=kwargs['pk'])
+
+    def get(self, request, *args, **kwargs):
+        form = AtribuicaoForm(instance=self.atribuicao)
+        return render(request, self.template_name, {
+            'form': form, 'turma': self.atribuicao.turma, 'editando': True,
+        })
+
+    def post(self, request, *args, **kwargs):
+        form = AtribuicaoForm(request.POST, instance=self.atribuicao)
+        if form.is_valid():
+            atribuicao = form.save(commit=False)
+            try:
+                atribuicao.full_clean()
+            except ValidationError as erro:
+                form.add_error(None, erro)
+                return render(request, self.template_name, {
+                    'form': form, 'turma': self.atribuicao.turma, 'editando': True,
+                })
+            atribuicao.save()
+            messages.success(request, 'Atribuição atualizada com sucesso — o professor foi trocado permanentemente.')
+            _avisar_se_fora_do_vinculo(request, atribuicao.professor, atribuicao.turma)
+            return redirect('grade:atribuicoes', atribuicao.turma_id)
+        return render(request, self.template_name, {
+            'form': form, 'turma': self.atribuicao.turma, 'editando': True,
+        })
 
 
 class AtribuicaoDeleteView(LoginRequiredMixin, GerenciaAcademicoMixin, DeleteView):

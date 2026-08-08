@@ -26,6 +26,7 @@ from apps.disponibilidade.models import DisponibilidadeProfessor
 from apps.grade.models import Atribuicao, GradeAula
 from apps.horarios.models import Horario
 from apps.professores.models import Professor
+from apps.substituicoes.models import Substituicao
 from apps.turmas.models import Turma
 from apps.usuarios.models import Usuario
 
@@ -36,7 +37,7 @@ logger = logging.getLogger('sigha.auditoria')
 
 MODELOS_AUDITADOS = [
     Usuario, Professor, Disciplina, Turma, Ambiente, Horario,
-    DisponibilidadeProfessor, Atribuicao, GradeAula, Evento,
+    DisponibilidadeProfessor, Atribuicao, GradeAula, Evento, Substituicao,
     # RegistroBackup: gerar/remover um backup (Módulo 17) também aparece
     # na Auditoria como CRIACAO/REMOCAO — a ação de RESTAURAR é diferente
     # (não cria/apaga essa linha) e é gravada explicitamente em

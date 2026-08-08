@@ -18,6 +18,7 @@ urlpatterns = [
     path('horarios/', include('apps.horarios.urls', namespace='horarios')),
     path('disponibilidade/', include('apps.disponibilidade.urls', namespace='disponibilidade')),
     path('grade/', include('apps.grade.urls', namespace='grade')),
+    path('substituicoes/', include('apps.substituicoes.urls', namespace='substituicoes')),
     path('algoritmo/', include('apps.algoritmo.urls', namespace='algoritmo')),
     path('calendario/', include('apps.calendario.urls', namespace='calendario')),
     path('relatorios/', include('apps.relatorios.urls', namespace='relatorios')),

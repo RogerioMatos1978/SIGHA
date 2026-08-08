@@ -15,6 +15,7 @@ from apps.disponibilidade.models import DisponibilidadeProfessor
 from apps.grade.models import Atribuicao, GradeAula
 from apps.horarios.models import Horario
 from apps.professores.models import Professor
+from apps.substituicoes.models import Substituicao
 from apps.turmas.models import Turma
 from apps.usuarios.models import Usuario
 
@@ -38,13 +39,19 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 class ProfessorSerializer(serializers.ModelSerializer):
+    etapas_autorizadas_display = serializers.SerializerMethodField()
+
     class Meta:
         model = Professor
         fields = [
             'id', 'nome', 'matricula', 'email', 'telefone', 'carga_horaria',
-            'ativo', 'usuario', 'criado_em', 'atualizado_em',
+            'ativo', 'usuario', 'etapas_autorizadas', 'etapas_autorizadas_display',
+            'turmas_liberadas', 'turmas_bloqueadas', 'criado_em', 'atualizado_em',
         ]
         read_only_fields = ['criado_em', 'atualizado_em']
+
+    def get_etapas_autorizadas_display(self, obj):
+        return obj.etapas_autorizadas_display
 
 
 class DisciplinaSerializer(serializers.ModelSerializer):
@@ -64,10 +71,14 @@ class DisciplinaSerializer(serializers.ModelSerializer):
 
 class TurmaSerializer(serializers.ModelSerializer):
     turno_display = serializers.CharField(source='get_turno_display', read_only=True)
+    etapa_ensino_display = serializers.CharField(source='get_etapa_ensino_display', read_only=True)
 
     class Meta:
         model = Turma
-        fields = ['id', 'nome', 'serie', 'turno', 'turno_display', 'ativo', 'criado_em', 'atualizado_em']
+        fields = [
+            'id', 'nome', 'serie', 'etapa_ensino', 'etapa_ensino_display',
+            'turno', 'turno_display', 'ativo', 'criado_em', 'atualizado_em',
+        ]
         read_only_fields = ['criado_em', 'atualizado_em']
 
 
@@ -100,10 +111,20 @@ class DisponibilidadeProfessorSerializer(serializers.ModelSerializer):
 
 
 class AtribuicaoSerializer(serializers.ModelSerializer):
+    """
+    `professor_fora_do_vinculo` é só informativo (Módulo 19): nunca bloqueia
+    a criação/edição, apenas avisa quando o professor não está autorizado
+    (por etapa ou exceção) para a turma da atribuição.
+    """
+    professor_fora_do_vinculo = serializers.SerializerMethodField()
+
     class Meta:
         model = Atribuicao
-        fields = ['id', 'turma', 'disciplina', 'professor', 'ativo', 'criado_em']
+        fields = ['id', 'turma', 'disciplina', 'professor', 'ativo', 'professor_fora_do_vinculo', 'criado_em']
         read_only_fields = ['criado_em']
+
+    def get_professor_fora_do_vinculo(self, obj):
+        return not obj.professor.pode_lecionar_em(obj.turma)
 
 
 class GradeAulaSerializer(FullCleanMixin, serializers.ModelSerializer):
@@ -115,20 +136,52 @@ class GradeAulaSerializer(FullCleanMixin, serializers.ModelSerializer):
     """
     excluir_do_full_clean = ['criado_por']
     dia_semana_display = serializers.CharField(source='get_dia_semana_display', read_only=True)
+    professor_fora_do_vinculo = serializers.SerializerMethodField()
 
     class Meta:
         model = GradeAula
         fields = [
             'id', 'turma', 'disciplina', 'professor', 'ambiente', 'dia_semana',
-            'dia_semana_display', 'horario', 'ano_letivo', 'semestre',
+            'dia_semana_display', 'horario', 'ano_letivo', 'semestre', 'professor_fora_do_vinculo',
             'criado_por', 'criado_em', 'atualizado_em',
         ]
         read_only_fields = ['criado_por', 'criado_em', 'atualizado_em']
+
+    def get_professor_fora_do_vinculo(self, obj):
+        return not obj.professor.pode_lecionar_em(obj.turma)
 
     def preparar_instancia(self, instancia):
         # Usado só durante a validação (full_clean), para que as regras que
         # dependem do professor (carga horária/disponibilidade) já vejam
         # quem seria o criador — não é o que efetivamente grava no banco.
+        request = self.context.get('request')
+        if request is not None and request.user.is_authenticated:
+            instancia.criado_por = request.user
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request is not None and request.user.is_authenticated:
+            validated_data['criado_por'] = request.user
+        return super().create(validated_data)
+
+
+class SubstituicaoSerializer(FullCleanMixin, serializers.ModelSerializer):
+    """
+    Reaproveita `Substituicao.clean()` (Módulo 19): data precisa cair no
+    dia da semana da aula original, substituto xor aula cancelada, sem
+    choque de horário com a grade regular ou com outra substituição.
+    """
+    excluir_do_full_clean = ['criado_por']
+
+    class Meta:
+        model = Substituicao
+        fields = [
+            'id', 'aula', 'data', 'professor_substituto', 'aula_cancelada',
+            'motivo', 'criado_por', 'criado_em',
+        ]
+        read_only_fields = ['criado_por', 'criado_em']
+
+    def preparar_instancia(self, instancia):
         request = self.context.get('request')
         if request is not None and request.user.is_authenticated:
             instancia.criado_por = request.user

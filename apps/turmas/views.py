@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, View
 
 from .forms import TurmaForm
-from .models import Turma
+from .models import EtapaEnsino, Turma
 from .permissions import GerenciaAcademicoMixin
 
 
@@ -25,7 +25,15 @@ class TurmaListView(LoginRequiredMixin, GerenciaAcademicoMixin, ListView):
         termo = self.request.GET.get('q', '').strip()
         if termo:
             qs = qs.filter(Q(nome__icontains=termo) | Q(serie__icontains=termo))
+        etapa = self.request.GET.get('etapa_ensino')
+        if etapa:
+            qs = qs.filter(etapa_ensino=etapa)
         return qs
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto['etapas'] = EtapaEnsino.choices
+        return contexto
 
 
 class TurmaCreateView(LoginRequiredMixin, GerenciaAcademicoMixin, SuccessMessageMixin, CreateView):

@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView
 
+from apps.grade import services as grade_services
 from apps.grade.models import GradeAula, Semestre
 from apps.turmas.models import Turma
 
@@ -56,9 +57,11 @@ class GerarGradeView(LoginRequiredMixin, GerenciaAcademicoMixin, View):
     def get(self, request, *args, **kwargs):
         ano_letivo, semestre = _periodo_atual(request)
         resumo = solver.resumo_atribuicoes(self.turma, ano_letivo, semestre)
+        avisos_vinculo = grade_services.atribuicoes_fora_do_vinculo(self.turma)
         return render(request, self.template_name, {
             'turma': self.turma, 'resumo': resumo,
             'ano_letivo': ano_letivo, 'semestre': semestre,
+            'avisos_vinculo': avisos_vinculo,
         })
 
     def post(self, request, *args, **kwargs):

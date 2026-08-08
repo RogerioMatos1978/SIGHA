@@ -15,5 +15,6 @@ urlpatterns = [
     path('aula/<int:pk>/remover/', views.GradeAulaDeleteView.as_view(), name='remover'),
     path('turma/<int:turma_id>/atribuicoes/', views.AtribuicaoListView.as_view(), name='atribuicoes'),
     path('turma/<int:turma_id>/atribuicoes/nova/', views.AtribuicaoCreateView.as_view(), name='atribuicao_criar'),
+    path('atribuicao/<int:pk>/editar/', views.AtribuicaoUpdateView.as_view(), name='atribuicao_editar'),
     path('atribuicao/<int:pk>/remover/', views.AtribuicaoDeleteView.as_view(), name='atribuicao_remover'),
 ]

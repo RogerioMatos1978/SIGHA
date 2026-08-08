@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block titulo %}Substituições{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Substituições de professores</h1>
+<p class="text-muted">
+    Faltas pontuais cobertas (ou aulas canceladas) em datas específicas. Para registrar uma nova,
+    use o botão <i class="bi bi-arrow-repeat"></i> numa aula da <a href="{% url 'grade:lista' %}">Grade</a>.
+</p>
+
+<form method="get" class="row row-cols-auto g-2 align-items-end mb-3">
+    <div class="col">
+        <label class="form-label small mb-0">Turma</label>
+        <select name="turma" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            {% for turma in turmas %}
+            <option value="{{ turma.pk }}" {% if turma_selecionada == turma.pk|stringformat:"s" %}selected{% endif %}>{{ turma.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Filtrar</button>
+        <a href="{% url 'substituicoes:lista' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Turma</th>
+                <th>Disciplina</th>
+                <th>Titular</th>
+                <th>Substituto</th>
+                <th>Motivo</th>
+                <th class="text-end">Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in substituicoes %}
+            <tr>
+                <td>{{ s.data|date:"d/m/Y" }}</td>
+                <td>{{ s.aula.turma.nome }}</td>
+                <td>{{ s.aula.disciplina.sigla }}</td>
+                <td>{{ s.aula.professor.nome }}</td>
+                <td>
+                    {% if s.aula_cancelada %}
+                        <span class="badge text-bg-secondary">Aula cancelada</span>
+                    {% else %}
+                        {{ s.professor_substituto.nome }}
+                    {% endif %}
+                </td>
+                <td>{{ s.motivo|default:'—' }}</td>
+                <td class="text-end">
+                    <a href="{% url 'substituicoes:remover' s.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4">Nenhuma substituição registrada ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

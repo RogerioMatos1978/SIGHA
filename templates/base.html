@@ -18,81 +18,131 @@
             <i class="bi bi-calendar2-week fs-3 text-primary me-2"></i>
             <span class="fs-5 fw-semibold">SIGHA</span>
         </a>
-        <ul class="nav nav-pills flex-column mb-auto">
+        <ul class="nav nav-pills flex-column mb-auto sigha-nav">
             <li class="nav-item">
                 <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                     <i class="bi bi-speedometer2 me-2"></i>Dashboard
                 </a>
             </li>
+
             {% if user.pode_gerenciar_academico %}
-            <li class="nav-item">
-                <a href="{% url 'professores:lista' %}" class="nav-link {% if 'professores' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-person-workspace me-2"></i>Professores
-                </a>
+            {# Grupo "Cadastros": os cadastros de base (Módulos 4 a 9) — fica aberto sozinho quando a página atual é uma delas. #}
+            <li class="nav-item sigha-nav-group">
+                <button type="button"
+                        class="nav-link sigha-nav-group-toggle {% if 'professores' not in request.resolver_match.namespaces and 'disciplinas' not in request.resolver_match.namespaces and 'turmas' not in request.resolver_match.namespaces and 'ambientes' not in request.resolver_match.namespaces and 'horarios' not in request.resolver_match.namespaces and 'disponibilidade' not in request.resolver_match.namespaces %}collapsed{% endif %}"
+                        data-bs-toggle="collapse" data-bs-target="#grupoCadastros"
+                        aria-expanded="{% if 'professores' in request.resolver_match.namespaces or 'disciplinas' in request.resolver_match.namespaces or 'turmas' in request.resolver_match.namespaces or 'ambientes' in request.resolver_match.namespaces or 'horarios' in request.resolver_match.namespaces or 'disponibilidade' in request.resolver_match.namespaces %}true{% else %}false{% endif %}">
+                    <i class="bi bi-folder2-open me-2"></i>
+                    <span class="flex-grow-1 text-start">Cadastros</span>
+                    <i class="bi bi-chevron-down sigha-chevron"></i>
+                </button>
+                <ul class="nav flex-column collapse ps-3 {% if 'professores' in request.resolver_match.namespaces or 'disciplinas' in request.resolver_match.namespaces or 'turmas' in request.resolver_match.namespaces or 'ambientes' in request.resolver_match.namespaces or 'horarios' in request.resolver_match.namespaces or 'disponibilidade' in request.resolver_match.namespaces %}show{% endif %}" id="grupoCadastros">
+                    <li class="nav-item">
+                        <a href="{% url 'professores:lista' %}" class="nav-link {% if 'professores' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-person-workspace me-2"></i>Professores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'disciplinas:lista' %}" class="nav-link {% if 'disciplinas' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>Disciplinas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'turmas:lista' %}" class="nav-link {% if 'turmas' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-people-fill me-2"></i>Turmas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'ambientes:lista' %}" class="nav-link {% if 'ambientes' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-door-open-fill me-2"></i>Ambientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'horarios:lista' %}" class="nav-link {% if 'horarios' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-clock-fill me-2"></i>Horários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'disponibilidade:lista' %}" class="nav-link {% if 'disponibilidade' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-calendar2-check me-2"></i>Disponibilidade
+                        </a>
+                    </li>
+                </ul>
             </li>
-            <li class="nav-item">
-                <a href="{% url 'disciplinas:lista' %}" class="nav-link {% if 'disciplinas' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-journal-bookmark-fill me-2"></i>Disciplinas
-                </a>
+
+            {# Grupo "Planejamento": a grade em si — o que essas telas montam a partir dos cadastros acima. #}
+            <li class="nav-item sigha-nav-group">
+                <button type="button"
+                        class="nav-link sigha-nav-group-toggle {% if 'grade' not in request.resolver_match.namespaces and 'substituicoes' not in request.resolver_match.namespaces and 'algoritmo' not in request.resolver_match.namespaces and 'calendario' not in request.resolver_match.namespaces %}collapsed{% endif %}"
+                        data-bs-toggle="collapse" data-bs-target="#grupoPlanejamento"
+                        aria-expanded="{% if 'grade' in request.resolver_match.namespaces or 'substituicoes' in request.resolver_match.namespaces or 'algoritmo' in request.resolver_match.namespaces or 'calendario' in request.resolver_match.namespaces %}true{% else %}false{% endif %}">
+                    <i class="bi bi-diagram-3-fill me-2"></i>
+                    <span class="flex-grow-1 text-start">Planejamento</span>
+                    <i class="bi bi-chevron-down sigha-chevron"></i>
+                </button>
+                <ul class="nav flex-column collapse ps-3 {% if 'grade' in request.resolver_match.namespaces or 'substituicoes' in request.resolver_match.namespaces or 'algoritmo' in request.resolver_match.namespaces or 'calendario' in request.resolver_match.namespaces %}show{% endif %}" id="grupoPlanejamento">
+                    <li class="nav-item">
+                        <a href="{% url 'grade:lista' %}" class="nav-link {% if 'grade' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Grade
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'algoritmo:lista' %}" class="nav-link {% if 'algoritmo' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-magic me-2"></i>Gerar automaticamente
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'substituicoes:lista' %}" class="nav-link {% if 'substituicoes' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-arrow-repeat me-2"></i>Substituições
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'calendario:mes' %}" class="nav-link {% if 'calendario' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-calendar3 me-2"></i>Calendário
+                        </a>
+                    </li>
+                </ul>
             </li>
-            <li class="nav-item">
-                <a href="{% url 'turmas:lista' %}" class="nav-link {% if 'turmas' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-people-fill me-2"></i>Turmas
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'ambientes:lista' %}" class="nav-link {% if 'ambientes' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-door-open-fill me-2"></i>Ambientes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'horarios:lista' %}" class="nav-link {% if 'horarios' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-clock-fill me-2"></i>Horários
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'disponibilidade:lista' %}" class="nav-link {% if 'disponibilidade' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-calendar2-check me-2"></i>Disponibilidade
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'grade:lista' %}" class="nav-link {% if 'grade' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-grid-3x3-gap-fill me-2"></i>Grade
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'algoritmo:lista' %}" class="nav-link {% if 'algoritmo' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-magic me-2"></i>Gerar automaticamente
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'calendario:mes' %}" class="nav-link {% if 'calendario' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-calendar3 me-2"></i>Calendário
-                </a>
-            </li>
+
             <li class="nav-item">
                 <a href="{% url 'relatorios:home' %}" class="nav-link {% if 'relatorios' in request.resolver_match.namespaces %}active{% endif %}">
                     <i class="bi bi-bar-chart-line-fill me-2"></i>Relatórios
                 </a>
             </li>
             {% endif %}
-            {% if user.pode_gerenciar_usuarios %}
-            <li class="nav-item">
-                <a href="{% url 'usuarios:lista' %}" class="nav-link {% if 'usuarios' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-people-fill me-2"></i>Usuários
-                </a>
-            </li>
-            {% endif %}
-            {% if user.is_administrador %}
-            <li class="nav-item">
-                <a href="{% url 'auditoria:lista' %}" class="nav-link {% if 'auditoria' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-shield-lock-fill me-2"></i>Auditoria
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'backup:lista' %}" class="nav-link {% if 'backup' in request.resolver_match.namespaces %}active{% endif %}">
-                    <i class="bi bi-hdd-fill me-2"></i>Backup
-                </a>
+
+            {% if user.pode_gerenciar_usuarios or user.is_administrador %}
+            {# Grupo "Administração": telas restritas (usuários do sistema, auditoria, backup). #}
+            <li class="nav-item sigha-nav-group">
+                <button type="button"
+                        class="nav-link sigha-nav-group-toggle {% if 'usuarios' not in request.resolver_match.namespaces and 'auditoria' not in request.resolver_match.namespaces and 'backup' not in request.resolver_match.namespaces %}collapsed{% endif %}"
+                        data-bs-toggle="collapse" data-bs-target="#grupoAdministracao"
+                        aria-expanded="{% if 'usuarios' in request.resolver_match.namespaces or 'auditoria' in request.resolver_match.namespaces or 'backup' in request.resolver_match.namespaces %}true{% else %}false{% endif %}">
+                    <i class="bi bi-gear-fill me-2"></i>
+                    <span class="flex-grow-1 text-start">Administração</span>
+                    <i class="bi bi-chevron-down sigha-chevron"></i>
+                </button>
+                <ul class="nav flex-column collapse ps-3 {% if 'usuarios' in request.resolver_match.namespaces or 'auditoria' in request.resolver_match.namespaces or 'backup' in request.resolver_match.namespaces %}show{% endif %}" id="grupoAdministracao">
+                    {% if user.pode_gerenciar_usuarios %}
+                    <li class="nav-item">
+                        <a href="{% url 'usuarios:lista' %}" class="nav-link {% if 'usuarios' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-people-fill me-2"></i>Usuários
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.is_administrador %}
+                    <li class="nav-item">
+                        <a href="{% url 'auditoria:lista' %}" class="nav-link {% if 'auditoria' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-shield-lock-fill me-2"></i>Auditoria
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'backup:lista' %}" class="nav-link {% if 'backup' in request.resolver_match.namespaces %}active{% endif %}">
+                            <i class="bi bi-hdd-fill me-2"></i>Backup
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
             </li>
             {% endif %}
         </ul>

@@ -32,8 +32,18 @@
             <tr>
                 <td>{{ atribuicao.disciplina.nome }} ({{ atribuicao.disciplina.sigla }})</td>
                 <td>{{ atribuicao.disciplina.quantidade_aulas_semana }}</td>
-                <td>{{ atribuicao.professor.nome }}</td>
+                <td>
+                    {{ atribuicao.professor.nome }}
+                    {% if atribuicao.pk in fora_do_vinculo %}
+                        <span class="badge text-bg-warning text-dark" title="Professor fora da etapa/turma autorizada">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Fora do vínculo
+                        </span>
+                    {% endif %}
+                </td>
                 <td class="text-end">
+                    <a href="{% url 'grade:atribuicao_editar' atribuicao.pk %}" class="btn btn-sm btn-outline-secondary" title="Trocar professor permanentemente">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </a>
                     <a href="{% url 'grade:atribuicao_remover' atribuicao.pk %}" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash"></i>
                     </a>

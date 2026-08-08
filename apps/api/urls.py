@@ -14,6 +14,7 @@ router.register('horarios', views.HorarioViewSet, basename='horario')
 router.register('disponibilidade', views.DisponibilidadeProfessorViewSet, basename='disponibilidade')
 router.register('atribuicoes', views.AtribuicaoViewSet, basename='atribuicao')
 router.register('grade', views.GradeAulaViewSet, basename='gradeaula')
+router.register('substituicoes', views.SubstituicaoViewSet, basename='substituicao')
 router.register('calendario/eventos', views.EventoViewSet, basename='evento')
 
 urlpatterns = router.urls

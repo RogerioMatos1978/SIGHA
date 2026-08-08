@@ -80,6 +80,9 @@
                                 <a href="{% url 'grade:editar' aula.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                <a href="{% url 'substituicoes:criar' aula.pk %}" class="btn btn-sm btn-outline-warning" title="Registrar substituição pontual (falta do titular)">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </a>
                                 <a href="{% url 'grade:remover' aula.pk %}" class="btn btn-sm btn-outline-danger" title="Remover">
                                     <i class="bi bi-trash"></i>
                                 </a>

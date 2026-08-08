@@ -13,6 +13,7 @@ from apps.disponibilidade.models import DisponibilidadeProfessor
 from apps.grade.models import Atribuicao, GradeAula
 from apps.horarios.models import Horario
 from apps.professores.models import Professor
+from apps.substituicoes.models import Substituicao
 from apps.turmas.models import Turma
 from apps.usuarios.models import Usuario
 
@@ -70,7 +71,7 @@ class TurmaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = _filtrar_por_booleano(super().get_queryset(), self.request, 'ativo')
-        return _filtrar_por_igualdade(qs, self.request, ['turno'])
+        return _filtrar_por_igualdade(qs, self.request, ['turno', 'etapa_ensino'])
 
 
 class AmbienteViewSet(viewsets.ModelViewSet):
@@ -121,6 +122,15 @@ class GradeAulaViewSet(viewsets.ModelViewSet):
             self.request,
             ['turma', 'professor', 'ambiente', 'ano_letivo', 'semestre', 'dia_semana'],
         )
+
+
+class SubstituicaoViewSet(viewsets.ModelViewSet):
+    queryset = Substituicao.objects.select_related('aula__turma', 'professor_substituto').all()
+    serializer_class = serializers.SubstituicaoSerializer
+    permission_classes = [PermiteGerenciarAcademico]
+
+    def get_queryset(self):
+        return _filtrar_por_igualdade(super().get_queryset(), self.request, ['aula', 'professor_substituto', 'data'])
 
 
 class EventoViewSet(viewsets.ModelViewSet):

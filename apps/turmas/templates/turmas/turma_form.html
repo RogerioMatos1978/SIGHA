@@ -20,6 +20,11 @@
         {% for erro in form.serie.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
     </div>
     <div class="col-md-6">
+        <label class="form-label">Etapa de ensino</label>
+        {{ form.etapa_ensino }}
+        {% for erro in form.etapa_ensino.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="col-md-6">
         <label class="form-label">Turno</label>
         {{ form.turno }}
         {% for erro in form.turno.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}

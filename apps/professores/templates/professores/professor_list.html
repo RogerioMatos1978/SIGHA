@@ -23,6 +23,7 @@
                 <th>Matrícula</th>
                 <th>E-mail</th>
                 <th>Carga horária</th>
+                <th>Etapas autorizadas</th>
                 <th>Status</th>
                 <th class="text-end">Ações</th>
             </tr>
@@ -34,6 +35,15 @@
                 <td>{{ p.matricula }}</td>
                 <td>{{ p.email|default:'—' }}</td>
                 <td>{{ p.carga_horaria }}h/semana</td>
+                <td>
+                    {% if p.etapas_autorizadas_display %}
+                        {% for etapa in p.etapas_autorizadas_display %}
+                            <span class="badge text-bg-info text-dark">{{ etapa }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="badge text-bg-secondary">Sem restrição</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% if p.ativo %}
                         <span class="badge text-bg-success">Ativo</span>
@@ -55,7 +65,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="text-center text-muted py-4">Nenhum professor cadastrado.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">Nenhum professor cadastrado.</td></tr>
             {% endfor %}
         </tbody>
     </table>

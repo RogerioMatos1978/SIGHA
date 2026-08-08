@@ -13,7 +13,7 @@ from apps.disciplinas.models import Disciplina
 from apps.disponibilidade.models import DiaSemana, DisponibilidadeProfessor
 from apps.horarios.models import Horario
 from apps.professores.models import Professor
-from apps.turmas.models import Turma, Turno
+from apps.turmas.models import EtapaEnsino, Turma, Turno
 from apps.usuarios.models import Papel, Usuario
 
 from .models import Atribuicao, GradeAula, Semestre
@@ -234,3 +234,41 @@ class AtribuicaoTests(GradeBaseTestCase):
         resposta = self.client.post(reverse('grade:atribuicao_remover', args=[atribuicao.pk]))
         self.assertEqual(resposta.status_code, 302)
         self.assertEqual(Atribuicao.objects.count(), 0)
+
+    def test_editar_atribuicao_troca_professor_permanentemente(self):
+        atribuicao = Atribuicao.objects.create(turma=self.turma_a, disciplina=self.disciplina, professor=self.professor)
+        resposta = self.client.post(reverse('grade:atribuicao_editar', args=[atribuicao.pk]), {
+            'disciplina': self.disciplina.pk,
+            'professor': self.outro_professor.pk,
+        })
+        self.assertEqual(resposta.status_code, 302)
+        atribuicao.refresh_from_db()
+        self.assertEqual(atribuicao.professor, self.outro_professor)
+
+
+class AtribuicaoVinculoEtapaTests(GradeBaseTestCase):
+    """
+    Módulo 19: professor fora da etapa/turma autorizada gera só um AVISO
+    (messages.warning) — a atribuição/aula é salva normalmente mesmo assim.
+    """
+    def setUp(self):
+        super().setUp()
+        self.client.login(username='admin10', password=self.senha)
+        # turma_a usa o padrão FUNDAMENTAL_2 (ver Turma.etapa_ensino); este
+        # professor só está autorizado para o Médio — fora do vínculo, de propósito.
+        self.professor.etapas_autorizadas = [EtapaEnsino.MEDIO]
+        self.professor.save()
+
+    def test_criar_atribuicao_fora_do_vinculo_salva_com_aviso(self):
+        resposta = self.client.post(reverse('grade:atribuicao_criar', args=[self.turma_a.pk]), {
+            'disciplina': self.disciplina.pk, 'professor': self.professor.pk,
+        }, follow=True)
+        self.assertEqual(Atribuicao.objects.count(), 1)
+        mensagens = [str(m) for m in resposta.context['messages']]
+        self.assertTrue(any('não está vinculado' in m for m in mensagens))
+
+    def test_gerenciar_academico_ve_aviso_na_tela_de_gerar_grade(self):
+        Atribuicao.objects.create(turma=self.turma_a, disciplina=self.disciplina, professor=self.professor)
+        resposta = self.client.get(reverse('algoritmo:gerar', args=[self.turma_a.pk]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'fora da etapa/turma autorizada')

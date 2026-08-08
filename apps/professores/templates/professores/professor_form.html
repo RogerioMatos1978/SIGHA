@@ -3,7 +3,7 @@
 {% block conteudo %}
 <h1 class="h3 mb-4">{% if object %}Editar professor{% else %}Novo professor{% endif %}</h1>
 
-<form method="post" novalidate class="row g-3" style="max-width: 700px;">
+<form method="post" novalidate class="row g-3" style="max-width: 950px;">
     {% csrf_token %}
     {% if form.non_field_errors %}
         <div class="alert alert-danger">{{ form.non_field_errors }}</div>
@@ -38,6 +38,36 @@
             {{ form.ativo }}
             <label class="form-check-label" for="{{ form.ativo.id_for_label }}">Professor ativo</label>
         </div>
+    </div>
+
+    <div class="col-12"><hr></div>
+
+    <div class="col-12">
+        <h2 class="h6">Em quais turmas pode lecionar?</h2>
+        <p class="text-muted small mb-2">
+            Regra do Módulo 19: professor do Médio não dá aula para o Fundamental, e os
+            Fundamentais (I e II) não se misturam. Isto é só um AVISO na hora de montar a
+            Atribuição/Grade — nunca impede salvar, para não travar o coordenador num caso excepcional.
+        </p>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Etapas de ensino</label>
+        <div>
+            {% for checkbox in form.etapas_autorizadas %}
+                <div class="form-check">{{ checkbox.tag }} <label class="form-check-label">{{ checkbox.choice_label }}</label></div>
+            {% endfor %}
+        </div>
+        <div class="form-text">{{ form.etapas_autorizadas.help_text }}</div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Turmas liberadas além da etapa</label>
+        {{ form.turmas_liberadas }}
+        <div class="form-text">{{ form.turmas_liberadas.help_text }}</div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Turmas bloqueadas mesmo na etapa</label>
+        {{ form.turmas_bloqueadas }}
+        <div class="form-text">{{ form.turmas_bloqueadas.help_text }}</div>
     </div>
 
     <div class="col-12 mt-4">

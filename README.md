@@ -1,11 +1,13 @@
 # SIGHA — Sistema Inteligente de Gestão de Horários Acadêmicos
 
-Status atual: **os 18 módulos da especificação estão concluídos e
-testados** — Usuários, Login, Dashboard, Professores, Disciplinas,
+Status atual: **os 18 módulos da especificação original estão concluídos
+e testados** — Usuários, Login, Dashboard, Professores, Disciplinas,
 Turmas, Ambientes, Horários, Disponibilidade, Grade, Algoritmo automático
 (OR-Tools), Calendário, Relatórios, Exportações, API, Auditoria, Backup e
 Testes (a suíte de integração de ponta a ponta + cobertura + CI descritas
-mais abaixo). O sistema está funcional de ponta a ponta.
+mais abaixo) — mais um **Módulo 19** de melhorias pedidas depois: etapa
+de ensino em Turma, vínculo Professor↔Turma, e Substituições. O sistema
+está funcional de ponta a ponta.
 
 ## O que já funciona
 
@@ -22,12 +24,23 @@ mais abaixo). O sistema está funcional de ponta a ponta.
   na grade no ano atual, horários ainda livres e conflitos encontrados
   (sempre 0, porque o próprio sistema nunca permite salvar um conflito).
 - Cadastro de professores (`apps/professores`): nome, matrícula, e-mail,
-  telefone, carga horária semanal, ativo/inativo.
+  telefone, carga horária semanal, ativo/inativo, e o **vínculo com
+  turmas** (Módulo 19): em quais etapas de ensino (Fundamental I,
+  Fundamental II, Médio) o professor pode lecionar, mais exceções
+  pontuais por turma específica (liberar uma turma fora da etapa, ou
+  bloquear uma turma dentro dela) — resolve o caso real de o professor do
+  Médio não dar aula para o Fundamental, e os Fundamentais não se
+  misturarem. É só um **aviso** na hora de montar a Atribuição/Grade,
+  nunca um bloqueio — o coordenador sempre pode escalar alguém fora do
+  vínculo num caso excepcional.
 - Cadastro de disciplinas (`apps/disciplinas`): nome, sigla (normalizada
   em maiúscula automaticamente), quantidade de aulas por semana, ativo/inativo.
-- Cadastro de turmas (`apps/turmas`): nome, série, turno (Matutino,
-  Vespertino, Noturno, Integral), ativo/inativo — mesma turma pode existir
-  em turnos diferentes, mas não duplicada no mesmo turno.
+- Cadastro de turmas (`apps/turmas`): nome, série, etapa de ensino
+  (Fundamental I, Fundamental II ou Médio — a divisão oficial do
+  MEC/LDB: Fundamental I do 1º ao 5º ano, Fundamental II do 6º ao 9º,
+  Médio do 1º ao 3º), turno (Matutino, Vespertino, Noturno, Integral),
+  ativo/inativo — mesma turma pode existir em turnos diferentes, mas não
+  duplicada no mesmo turno. A lista tem filtro por etapa de ensino.
 - Cadastro de ambientes (`apps/ambientes`): nome (único), tipo (Sala,
   Biblioteca, Laboratório, Quadra, Auditório, Maker), capacidade de uso
   simultâneo, ativo/inativo — essa capacidade é o dado que o futuro módulo
@@ -56,7 +69,18 @@ mais abaixo). O sistema está funcional de ponta a ponta.
   semanal cadastrada no Módulo 4. Restrito a Administrador, Coordenador e
   Secretaria. Também é onde se cadastram as **atribuições** (qual
   professor dá qual disciplina para qual turma) — a informação de entrada
-  que o Módulo 11 usa para gerar a grade sozinho.
+  que o Módulo 11 usa para gerar a grade sozinho. Editar uma atribuição
+  troca o professor **permanentemente** dali para frente (Módulo 19 —
+  ex.: professor saiu de licença); se o professor escolhido estiver fora
+  do vínculo etapa/turma, o sistema salva mesmo assim e só avisa.
+- Substituições (`apps/substituicoes`, Módulo 19): cobre a falta pontual
+  de um professor titular numa data específica, sem mexer na atribuição
+  original — o mesmo fluxo usado por sistemas reais de gestão escolar
+  (ex.: Sistema SIGA) para registrar quem cobriu a aula (ou que a aula
+  foi cancelada, sem atendimento). Valida que a data cai no dia da semana
+  certo da aula, que o substituto não é o próprio titular, e que ele não
+  está em choque de horário com a grade regular ou com outra
+  substituição no mesmo dia.
 - Algoritmo automático (`apps/algoritmo`): botão "Gerar automaticamente"
   na tela da Grade. Usa o [OR-Tools](https://developers.google.com/optimization)
   (solver CP-SAT) para decidir o dia e o horário de cada aula das
@@ -134,9 +158,13 @@ mais abaixo). O sistema está funcional de ponta a ponta.
   e uma pipeline de CI (`.github/workflows/testes.yml`) que roda a suíte
   inteira automaticamente a cada push/pull request, contra um PostgreSQL
   e um Redis de verdade.
-- Interface Bootstrap 5, responsiva, com tema claro/escuro.
+- Interface Bootstrap 5, responsiva, com tema claro/escuro. O menu
+  lateral é agrupado por assunto (Cadastros, Planejamento,
+  Administração) em seções que abrem/fecham — sem isso, a lista de
+  telas (quase 20, um item por módulo) ficava comprida demais para
+  navegar de relance.
 - Banco de dados PostgreSQL (nunca planilhas).
-- Testes automatizados (190 testes: 189 nas suítes de cada módulo mais o
+- Testes automatizados (223 testes: 222 nas suítes de cada módulo mais o
   teste de integração de ponta a ponta) cobrindo login, permissões,
   dashboard, professores, disciplinas, turmas, ambientes, horários,
   disponibilidade, as regras de conflito da grade, o algoritmo automático
@@ -169,6 +197,15 @@ Pré-requisito: [Docker Desktop](https://www.docker.com/products/docker-desktop/
 
 4. Acesse `http://localhost:8000/usuarios/login/` no navegador.
 
+5. (Opcional) Carregue uma grade de aulas de exemplo para testar o
+   sistema com dados prontos, em vez de cadastrar tudo manualmente:
+
+   ```
+   docker compose exec web python manage.py carregar_dados_exemplo
+   ```
+
+   Veja a seção **Dados de exemplo** mais abaixo para saber o que isso cria.
+
 ## Como rodar sem Docker (direto no seu computador)
 
 Requer Python 3.11+ e um PostgreSQL rodando localmente.
@@ -183,6 +220,62 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Dados de exemplo
+
+```
+python manage.py carregar_dados_exemplo            # carrega
+python manage.py carregar_dados_exemplo --limpar   # remove
+```
+
+Cria uma grade de aulas completa para testar o sistema sem precisar
+cadastrar tudo manualmente — com turmas nas **três etapas da Educação
+Básica**, na divisão oficial do MEC/LDB ([saibatecnologias.com.br, "Quais
+são as Séries do Ensino Fundamental?"](https://sabertecnologias.com.br/conteudo/quais-sao-as-series-do-ensino-fundamental-guia-completo)):
+
+- **Fundamental I** (Anos Iniciais, 1º ao 5º ano) — turma **3º Ano A**,
+  com uma professora regente dando a maior parte das aulas (Português,
+  Matemática, Ciências, Geografia, História) e especialistas para Educação
+  Física, Inglês, Informática, Arte e Música — o modelo real desta etapa.
+- **Fundamental II** (Anos Finais, 6º ao 9º ano) — turmas **6º Ano A** e
+  **9º Ano B**, compartilhando os mesmos professores entre si (ex.: o
+  professor de Matemática dá aula nas duas), com Língua Portuguesa,
+  Matemática, Ciências, Geografia, História, Educação Física, Inglês,
+  Informática, Desenho Geométrico, Arte e (só no 9º Ano) Geometria.
+- **Ensino Médio** (1º ao 3º ano) — turma **1º Ano A**, com um professor
+  especialista por disciplina: Língua Portuguesa, Matemática, Biologia,
+  Química, Física, História, Geografia, Filosofia, Sociologia, Arte,
+  Educação Física, Inglês, Espanhol e Redação.
+
+O currículo de cada etapa (quantas aulas semanais de cada disciplina) foi
+tirado de grades curriculares reais: Fundamental I e II do [Colégio
+Fito](https://www.fito.edu.br/arquivos/Ensino-Fundamental.pdf); Ensino
+Médio da [Faculdade Itop](https://www.faculdadeitop.edu.br/files/download/20210116160027_grade_curricular_1.2.3_ano_diurno.pdf).
+
+- 31 professores no total, com carga horária compatível com o que cada
+  um dá (mais uma folga, como qualquer contrato real).
+- 3 ambientes (salas de aula, laboratório de informática, quadra) e 8
+  horários (7 aulas de 50 minutos a partir das 07:00 + intervalo — o
+  padrão de aula de 50 minutos adotado em 2026 pela rede estadual de SP).
+  A 7ª aula é a "folga" da semana: com turmas de currículo cheio (até 30
+  aulas semanais), usar exatamente 6 aulas/dia deixaria o algoritmo
+  automático sem margem para encaixar tudo sem conflito de professor.
+- Algumas disponibilidades de professor marcadas como indisponível (ex.:
+  professor de Educação Física não dá a 1ª aula de segunda), para a tela
+  de Disponibilidade não ficar "tudo disponível sempre".
+- 4 eventos no calendário (2 feriados nacionais, 1 reunião pedagógica, 1
+  prova).
+- A grade das quatro turmas já **gerada automaticamente** pelo Módulo 11
+  (OR-Tools) — 115 aulas (30 + 30 + 30 + 25) encaixadas sem nenhum
+  conflito, prontas para ver na Grade, nos Relatórios, exportar ou
+  consultar pela API.
+
+O comando é idempotente (rodar de novo sem `--limpar` não duplica nada)
+e reversível (`--limpar` remove tudo, exceto os Horários — eles são uma
+configuração da escola inteira, não só do exemplo, e é seguro deixá-los).
+Todos os registros de exemplo são identificáveis (turmas e ambientes
+começam com `[Exemplo]`, professores e disciplinas têm matrícula/sigla
+começando com `EX`), então nunca se confundem com dados reais.
+
 ## Estrutura de pastas
 
 ```
@@ -196,6 +289,7 @@ apps/ambientes/     Módulo 7 — cadastro de ambientes
 apps/horarios/      Módulo 8 — configuração dos horários da grade
 apps/disponibilidade/ Módulo 9 — disponibilidade dos professores
 apps/grade/         Módulo 10 — grade de horários (visual + regras de conflito + atribuições)
+apps/substituicoes/ Módulo 19 — substituição pontual de professor por data
 apps/algoritmo/     Módulo 11 — geração automática da grade (OR-Tools)
 apps/calendario/    Módulo 12 — calendário acadêmico (feriados, eventos, provas)
 apps/relatorios/    Módulo 13 — relatórios somente leitura (carga horária, ocupação, pendências)

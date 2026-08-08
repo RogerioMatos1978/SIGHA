@@ -8,10 +8,23 @@
     </a>
 </div>
 
-<form method="get" class="mb-3">
-    <div class="input-group" style="max-width: 400px;">
-        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nome ou série">
-        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+<form method="get" class="row row-cols-auto g-2 align-items-end mb-3">
+    <div class="col">
+        <label class="form-label small mb-0">Buscar</label>
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm" placeholder="Nome ou série">
+    </div>
+    <div class="col">
+        <label class="form-label small mb-0">Etapa de ensino</label>
+        <select name="etapa_ensino" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            {% for valor, rotulo in etapas %}
+            <option value="{{ valor }}" {% if valor == request.GET.etapa_ensino %}selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Filtrar</button>
+        <a href="{% url 'turmas:lista' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
     </div>
 </form>
 
@@ -21,6 +34,7 @@
             <tr>
                 <th>Nome</th>
                 <th>Série</th>
+                <th>Etapa de ensino</th>
                 <th>Turno</th>
                 <th>Status</th>
                 <th class="text-end">Ações</th>
@@ -31,6 +45,7 @@
             <tr>
                 <td>{{ t.nome }}</td>
                 <td>{{ t.serie }}</td>
+                <td><span class="badge text-bg-info text-dark">{{ t.get_etapa_ensino_display }}</span></td>
                 <td><span class="badge text-bg-secondary">{{ t.get_turno_display }}</span></td>
                 <td>
                     {% if t.ativo %}
@@ -53,7 +68,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-center text-muted py-4">Nenhuma turma cadastrada.</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4">Nenhuma turma cadastrada.</td></tr>
             {% endfor %}
         </tbody>
     </table>

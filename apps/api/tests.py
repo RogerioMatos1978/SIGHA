@@ -86,6 +86,32 @@ class ProfessorApiTests(ApiCrudBaseTestCase):
         self.assertIn('Ativo', nomes)
         self.assertNotIn('Inativo', nomes)
 
+    def test_etapas_autorizadas_aparece_na_resposta(self):
+        professor = Professor.objects.create(
+            nome='Com etapa', matricula='API005', carga_horaria=10, etapas_autorizadas=['MEDIO'],
+        )
+        resposta = self.client.get(reverse('api:professor-detail', args=[professor.pk]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json()['etapas_autorizadas'], ['MEDIO'])
+
+
+class TurmaApiTests(ApiCrudBaseTestCase):
+    def test_etapa_ensino_aparece_na_resposta(self):
+        turma = Turma.objects.create(
+            nome='6º Ano API', serie='6º Ano', turno=Turno.MATUTINO, etapa_ensino='FUNDAMENTAL_2',
+        )
+        resposta = self.client.get(reverse('api:turma-detail', args=[turma.pk]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json()['etapa_ensino'], 'FUNDAMENTAL_2')
+
+    def test_filtro_por_etapa_ensino(self):
+        Turma.objects.create(nome='3º Ano API', serie='3º Ano', turno=Turno.MATUTINO, etapa_ensino='FUNDAMENTAL_1')
+        Turma.objects.create(nome='9º Ano API', serie='9º Ano', turno=Turno.MATUTINO, etapa_ensino='FUNDAMENTAL_2')
+        resposta = self.client.get(reverse('api:turma-list'), {'etapa_ensino': 'FUNDAMENTAL_1'})
+        nomes = [item['nome'] for item in resposta.json()]
+        self.assertIn('3º Ano API', nomes)
+        self.assertNotIn('9º Ano API', nomes)
+
 
 class HorarioApiTests(ApiCrudBaseTestCase):
     def test_fim_antes_do_inicio_retorna_400(self):
@@ -158,6 +184,18 @@ class GradeAulaApiTests(ApiCrudBaseTestCase):
 
 
 class AtribuicaoApiTests(ApiCrudBaseTestCase):
+    def test_professor_fora_do_vinculo_aparece_como_aviso_sem_bloquear(self):
+        turma = Turma.objects.create(nome='1º Ano Medio API', serie='1º Ano', turno=Turno.MATUTINO, etapa_ensino='MEDIO')
+        disciplina = Disciplina.objects.create(nome='Física', sigla='FISAPI', quantidade_aulas_semana=2)
+        professor = Professor.objects.create(
+            nome='Só Fundamental', matricula='API021', carga_horaria=20, etapas_autorizadas=['FUNDAMENTAL_1'],
+        )
+        resposta = self.client.post(reverse('api:atribuicao-list'), {
+            'turma': turma.pk, 'disciplina': disciplina.pk, 'professor': professor.pk,
+        })
+        self.assertEqual(resposta.status_code, 201, resposta.content)
+        self.assertTrue(resposta.json()['professor_fora_do_vinculo'])
+
     def test_atribuicao_duplicada_para_mesma_turma_disciplina_retorna_400(self):
         turma = Turma.objects.create(nome='2º Ano A', serie='2º Ano', turno=Turno.VESPERTINO)
         disciplina = Disciplina.objects.create(nome='Português', sigla='POR', quantidade_aulas_semana=3)
@@ -168,3 +206,31 @@ class AtribuicaoApiTests(ApiCrudBaseTestCase):
             'turma': turma.pk, 'disciplina': disciplina.pk, 'professor': professor.pk,
         })
         self.assertEqual(resposta.status_code, 400)
+
+
+class SubstituicaoApiTests(ApiCrudBaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.turma = Turma.objects.create(nome='2º Ano API Sub', serie='2º Ano', turno=Turno.MATUTINO)
+        disciplina = Disciplina.objects.create(nome='Química', sigla='QUIAPI', quantidade_aulas_semana=2)
+        self.titular = Professor.objects.create(nome='Titular API', matricula='API030', carga_horaria=20)
+        self.substituto = Professor.objects.create(nome='Substituto API', matricula='API031', carga_horaria=20)
+        horario = Horario.objects.create(ordem=1, inicio=datetime.time(7, 0), fim=datetime.time(7, 50))
+        self.aula = GradeAula.objects.create(
+            turma=self.turma, disciplina=disciplina, professor=self.titular,
+            ambiente=Ambiente.objects.create(nome='Sala Sub API', tipo=TipoAmbiente.SALA),
+            dia_semana=DiaSemana.SEGUNDA, horario=horario, ano_letivo=2026, semestre=Semestre.PRIMEIRO,
+        )
+
+    def test_criar_substituicao_valida(self):
+        resposta = self.client.post(reverse('api:substituicao-list'), {
+            'aula': self.aula.pk, 'data': '2026-08-10', 'professor_substituto': self.substituto.pk,
+        })
+        self.assertEqual(resposta.status_code, 201, resposta.content)
+
+    def test_data_fora_do_dia_da_semana_retorna_400(self):
+        resposta = self.client.post(reverse('api:substituicao-list'), {
+            'aula': self.aula.pk, 'data': '2026-08-11', 'professor_substituto': self.substituto.pk,
+        })
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn('data', resposta.json())

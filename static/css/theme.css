@@ -43,6 +43,35 @@ html, body {
     background-color: var(--bs-secondary-bg);
 }
 
+/*
+ * Grupos colapsáveis do menu (Cadastros, Planejamento, Administração):
+ * o menu cresceu para quase 20 telas conforme os módulos foram sendo
+ * concluídos, então agrupamos por assunto usando o componente collapse
+ * nativo do Bootstrap (sem biblioteca extra) — o botão do grupo se
+ * parece com um item normal do menu, só que sem link próprio.
+ */
+.sigha-sidebar .sigha-nav-group-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+.sigha-sidebar .sigha-chevron {
+    font-size: .7rem;
+    transition: transform .15s ease-in-out;
+}
+
+.sigha-sidebar .sigha-nav-group-toggle.collapsed .sigha-chevron {
+    transform: rotate(-90deg);
+}
+
+.sigha-sidebar .sigha-nav-group .nav-link {
+    font-size: .925rem;
+}
+
 .sigha-main {
     margin-left: var(--sigha-sidebar-width);
     min-width: 0; /* evita que conteúdo largo (tabelas) estoure o layout flex */
